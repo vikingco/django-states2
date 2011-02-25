@@ -2,7 +2,15 @@
 from django.db import models
 from django.contrib.auth.models import User
 from functools import wraps
+from django.utils.translation import ugettext_lazy as _
 
+import datetime
+
+
+class StateTransition(object):
+    def __init__(self, from_state, to_state):
+        self.from_state = from_state
+        self.to_state = to_state
 
 class StateManager(models.Manager):
     pass
@@ -16,7 +24,8 @@ class State(models.Model):
     """
     object_id = models.PositiveIntegerField(verbose_name=_('object id'), null=True)
     updated_on = models.DateTimeField(auto_now=True, default=datetime.datetime.now)
-    value = models.CharField(max_length=64, choices=get_state_choices(), default='0', verbose_name=_('state id'))
+    #value = models.CharField(max_length=64, choices=get_state_choices(), default='0', verbose_name=_('state id'))
+    value = models.CharField(max_length=64, default='0', verbose_name=_('state id'))
 
     objects = StateManager()
 
@@ -25,6 +34,7 @@ class State(models.Model):
         Instantiation of the State type.
         When this type is created, also create logging model if required.
         """
+        import pdb; pdb.set_trace()
         # Call class constructor of parent
         models.Model.__new__(cls, *args, **kwargs)
 
@@ -85,7 +95,7 @@ class State(models.Model):
             transition_log = self.log.objects.create(state = self, from_state = self.value, to_state = t.to, user = user)
 
         # Transition should start from here
-        if self.value != t.from:
+        if self.value != t.from_state:
             raise CannotExecuteTransitionInThisState(transition)
 
         # User should have permissions for this transition
@@ -96,7 +106,7 @@ class State(models.Model):
         if self.log:
             transition_log.action('start')
 
-        if self.has_state_transition_handler()
+        if self.has_state_transition_handler():
             if handler():
                 self.value = transition.to
 
@@ -121,6 +131,7 @@ class State(models.Model):
         """
         Create a new model for logging the state transitions.
         """
+        print 'creating log models'
         class _StateTransitionState(State):
             states = {
                 'state_transition_initiated': _('State transition initiated'),
@@ -141,6 +152,7 @@ class State(models.Model):
             class Meta:
                 abstract = True
 
+        _StateTransitionState.__module__ = cls.__module__
         state_transition_state_model = type('%s_StateTransitionState' % cls.name, _StateTransitionState)
 
         class _StateTransition(models.Model):
@@ -152,6 +164,10 @@ class State(models.Model):
             class Meta:
                 abstract = True
 
+        _StateTransition.__module__ = cls.__module__
         state_transition_model = type('%s_StateTransitionState' % cls.name, _StateTransition)
+
+        # These models will be detected by South because of the models.Model.__new__ constructor,
+        # which will register it somewhere in a global variable.
 
         return state_transition_model

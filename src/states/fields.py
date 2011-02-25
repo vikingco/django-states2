@@ -1,5 +1,7 @@
 
 from django.db.models.fields.related import ForeignKey
+from django.db import models
+from functools import wraps
 
 class StateField(ForeignKey):
     """
@@ -20,7 +22,7 @@ class StateField(ForeignKey):
 
     def __finalize(self, sender, **kwargs):
         # Create field descriptor in model
-        descriptor = getattr(sender, self.name, descriptor)
+        descriptor = getattr(sender, self.name)
         self.__capture_set_method(descriptor)
 
         # Capture save method
@@ -30,7 +32,9 @@ class StateField(ForeignKey):
         """
         A state should never be assigned by hand.
         """
-        raise AttributeError("You shouldn't set the state this way.")
+        def descriptor_set(self, instance, value):
+            raise AttributeError("You shouldn't set the state this way.")
+        descriptor.__set__ = descriptor_set
 
     def __capture_save_method(self, sender):
         """
