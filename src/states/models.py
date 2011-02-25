@@ -3,8 +3,10 @@ from django.db import models
 from django.contrib.auth.models import User
 from functools import wraps
 from django.utils.translation import ugettext_lazy as _
+from states.fields import StateField
 
 import datetime
+import copy
 
 
 class StateTransition(object):
@@ -15,34 +17,37 @@ class StateTransition(object):
 class StateManager(models.Manager):
     pass
 
+from django.db.models.base import ModelBase
 
+class StateBase(ModelBase):
+    def __new__(cls, name, bases, attrs):
+        """
+        Instantiation of the State type.
+        When this type is created, also create logging model if required.
+        """
+        # Call class constructor of parent
+        state= ModelBase.__new__(cls, name, bases, attrs)
+
+        # If we need logging, create logging model
+        if state.Machine.log_transitions:
+            state.log = state.create_state_log_model(name)
+        else:
+            state.log = None
+
+        return state
 
 
 class State(models.Model):
     """
     Every state table should inherit this model.
     """
-    object_id = models.PositiveIntegerField(verbose_name=_('object id'), null=True)
     updated_on = models.DateTimeField(auto_now=True, default=datetime.datetime.now)
     #value = models.CharField(max_length=64, choices=get_state_choices(), default='0', verbose_name=_('state id'))
     value = models.CharField(max_length=64, default='0', verbose_name=_('state id'))
 
     objects = StateManager()
 
-    def __new__(cls, *args, **kwargs):
-        """
-        Instantiation of the State type.
-        When this type is created, also create logging model if required.
-        """
-        import pdb; pdb.set_trace()
-        # Call class constructor of parent
-        models.Model.__new__(cls, *args, **kwargs)
-
-        # If we need logging, create logging model
-        if cls.Machine.log_transitions:
-            cls.log = cls.create_state_log_model()
-        else:
-            cls.log = None
+    __metaclass__ = StateBase
 
     class Machine:
         """
@@ -132,40 +137,58 @@ class State(models.Model):
         Create a new model for logging the state transitions.
         """
         print 'creating log models'
-        class _StateTransitionState(State):
-            states = {
-                'state_transition_initiated': _('State transition initiated'),
-                'state_transition_started': _('State transition started'),
-                'state_transition_failed': _('State transition failed'),
-                'state_transition_completed': _('State transition completed'),
-            }
-            initial_state = 'state_started'
-            transitions = {
-                'start': StateTransition('state_transition_initiated', 'state_transition_started'),
-                'complete': StateTransition('state_transition_started', 'state_transition_completed'),
-                'fail': StateTransition('state_transition_started', 'state_transition_failed'),
-            }
-            # We don't need logging of state transitions in a state transition log entry,
-            # as this would cause eternal, recursively nested state transition models.
-            log_transitions = False
+
+        def copy_fields(model):
+            fields = { '__module__': cls.__module__ }
+
+            for f in model._meta.fields:
+                fields[f.name] = copy.copy(f)
+
+            if hasattr(model, 'Machine'):
+                fields['Machine'] = model.Machine
+
+            if hasattr(model, 'Meta'):
+                fields['Meta'] = model.Meta
+
+            return fields
+
+        class _StateTransitionState(models.Model):
+            class Machine:
+                states = {
+                    'state_transition_initiated': _('State transition initiated'),
+                    'state_transition_started': _('State transition started'),
+                    'state_transition_failed': _('State transition failed'),
+                    'state_transition_completed': _('State transition completed'),
+                }
+                initial_state = 'state_started'
+                transitions = {
+                    'start': StateTransition('state_transition_initiated', 'state_transition_started'),
+                    'complete': StateTransition('state_transition_started', 'state_transition_completed'),
+                    'fail': StateTransition('state_transition_started', 'state_transition_failed'),
+                }
+                # We don't need logging of state transitions in a state transition log entry,
+                # as this would cause eternal, recursively nested state transition models.
+                log_transitions = False
 
             class Meta:
                 abstract = True
 
-        _StateTransitionState.__module__ = cls.__module__
-        state_transition_state_model = type('%s_StateTransitionState' % cls.name, _StateTransitionState)
+        # We need to use 'type', because we want models.Model._new__ constructor to be called with this name.
+        state_transition_state_model = type('%s_StateTransitionState' % cls.__name__,
+                (State,), copy_fields(_StateTransitionState))
 
         class _StateTransition(models.Model):
-            state = StateField(machine=state_transition_state_model)
             from_state = models.CharField(max_length=32)
             to_state = models.CharField(max_length=32)
             user = models.ForeignKey(User, blank=True, null=True)
 
+            state = StateField(machine=state_transition_state_model)
+
             class Meta:
                 abstract = True
 
-        _StateTransition.__module__ = cls.__module__
-        state_transition_model = type('%s_StateTransitionState' % cls.name, _StateTransition)
+        state_transition_model = type('%s_StateTransition' % cls.__name__,
+            (models.Model, ), copy_fields(_StateTransition))
 
         # These models will be detected by South because of the models.Model.__new__ constructor,
         # which will register it somewhere in a global variable.
