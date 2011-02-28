@@ -11,9 +11,9 @@ class StateField(ForeignKey):
     state is automatically created after initiation of the model.
     """
         # TODO: __init__ is supposed to accept only the 'machine' argument,
-        #       but south will thread this as a ForeignKey, until we get our
-        #       introspection rules working. So accept also, all the foreign
-        #       key parameters.
+        #       but south will thread this as a ForeignKey, and pass other
+        #       other arguments. So, until we get our introspection rules
+        #       working, also accept all the foreign key parameters.
 
 
     #def __init__(self, machine):
@@ -31,17 +31,31 @@ class StateField(ForeignKey):
         ForeignKey.contribute_to_class(self, cls, name)
 
     def __finalize(self, sender, **kwargs):
-        # Create field descriptor in model
+        # Capture set method of field descriptor
         descriptor = getattr(sender, self.name)
         self.__capture_set_method(descriptor)
 
         # Capture save method
         self.__capture_save_method(sender)
 
+        # Add make_transition to the object which has a statefield
+        self.__add_make_transition_method(sender)
+
+    def __add_make_transition_method(self, sender):
+        def make_transition(self, transition, user=None):
+            """
+            Run this state transition.
+            """
+            return self.state._make_transition(transition, self, user)
+
+        # Add 'make_transition' method to model.
+        sender.make_transition = make_transition
+
     def __capture_set_method(self, descriptor):
         """
         A state should never be assigned by hand.
         """
+            # TODO: this does not work
         def descriptor_set(self, instance, value):
             raise AttributeError("You shouldn't set the state this way.")
         descriptor.__set__ = descriptor_set

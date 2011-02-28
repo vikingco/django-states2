@@ -1,3 +1,15 @@
+# Author: Jonathan Slenders, CityLive
+
+__doc__ = \
+"""
+
+Base models for every State.
+
+"""
+
+
+__all__ = ('StateTransition', 'State')
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.base import ModelBase
@@ -9,11 +21,54 @@ import copy
 import datetime
 
 
+
+# =======================[ Exceptions ]=====================
+
+
+class UnknownTransition(Exception):
+    def __init__(self, instance, transition):
+        Exception.__init__(self, "Unknown transition '%s' on %s" %
+                    (transition, instance.__class__.__name__))
+
+class TransitionCannotStartnThisState(Exception):
+    def __init__(self, instance, transition):
+        Exception.__init__(self, "Transition '%s' on %s cannot start in the state '%s'" %
+                    (transition, instance.__class__.__name__, instance.value))
+
+
+# =======================[ Helper classes ]=====================
+
 class StateTransition(object):
+    """
+    Datastructure for state transitions
+    """
     def __init__(self, from_state, to_state):
-        self.from_state = from_state
+        # == From
+        if isinstance(from_state, basestring):
+            self.from_state = [ from_state ]
+        else:
+            assert isinstance(from_state, tuple), "from_state should be a state name or tuple"
+            self.from_state = from_state
+
+        # == To
         self.to_state = to_state
 
+    def has_permission(self, instance, user):
+        """
+        Override this method for special checking.
+        """
+        return True
+
+
+    def handler(self, instance, user):
+        """
+        Override this method if some specific actions need
+        to be executed during this state transition.
+        """
+        pass
+
+
+# =======================[ State ]=====================
 
 class StateBase(ModelBase):
     """
@@ -33,6 +88,12 @@ class StateBase(ModelBase):
             state_model._log = state_model._create_state_log_model(name)
         else:
             state_model._log = None
+
+        # Link default value for the State Machine
+        for f in state_model._meta.fields:
+            if f.name == 'value':
+                f.default = state_model.Machine.initial_state
+
         return state_model
 
 
@@ -70,9 +131,8 @@ class State(models.Model):
             'dummy': StateTransition(from_state='initial', to_state='initial'),
         }
 
-        # True when we should log all transitions (Causes state on state)
+        # True when we should log all transitions
         log_transitions = False
-
 
     class Meta:
         verbose_name = _('state')
@@ -88,7 +148,7 @@ class State(models.Model):
         Return state transitions log model.
         """
         if self._log:
-            return self.all_transitions
+            return self.all_transitions # Almost similar to: self._log.objects.filter(on=self)
         else:
             raise Exception('This model does not log state transitions. please enable it by setting log_transitions=True')
 
@@ -97,47 +157,46 @@ class State(models.Model):
         """
         Get the full description of the (current) state
         """
-        return self.value # TODO
+        return self.Machine.states[self.value]
 
-    def make_transition(self, transition, user): #, **kwargs):
+    def _make_transition(self, transition, instance, user=None):
         """
         Execute state transition
+        user: the user executing the transition
+        instance: the object which will undergo the state transition.
         """
-        # Transition should be known
-        if not transition in self.transitions:
-            raise UnknownTransition(transition)
-        t = self.transitions[transition]
+            # TODO: make_transition is imcomplete...
+
+        # Transition name should be known
+        if not transition in self.Machine.transitions:
+            raise UnknownTransition(self, transition)
+        t = self.Machine.transitions[transition]
 
         # Start transition log
-        if self.log:
-            transition_log = self.log.objects.create(on=self, from_state=self.value, to_state=t.to, user=user)
+        if self._log:
+            transition_log = self._log.objects.create(on=self, from_state=self.value, to_state=t.to_state, user=user)
 
         # Transition should start from here
-        if self.value != t.from_state:
-            raise CannotExecuteTransitionInThisState(transition)
+        if self.value not in t.from_state:
+            if self._log: transition_log.make_transition('fail')
+            raise TransitionCannotStartnThisState(self, transition)
 
         # User should have permissions for this transition
-        if not t.has_permission(user):
+        if not t.has_permission(instance, user):
+            if self._log: transition_log.make_transition('fail')
             raise StatePermissionFailed(transition)
 
         # Execute
-        if self.log:
-            transition_log.action('start')
+        if self._log: transition_log.make_transition('start')
 
-        if self.has_state_transition_handler():
-            if handler():
-                self.value = transition.to
-
-            else:
-                if self.log:
-                    transition_log.action('failed')
-
-        else:
-            self.value = transition.to
-
-        if self.log:
-            transition_log.action('complete')
-
+        try:
+            t.handler(instance, user)
+            self.value = t.to_state
+            self.save()
+            if self._log: transition_log.make_transition('complete')
+        except Exception, e:
+            if self._log: transition_log.make_transition('fail')
+            raise e
 
     @classmethod
     def get_state_choices(cls):
@@ -165,16 +224,17 @@ class State(models.Model):
             __metaclass__ = _StateTransitionStateMeta
             class Machine:
                 states = {
-                    'state_transition_initiated': _('State transition initiated'),
-                    'state_transition_started': _('State transition started'),
-                    'state_transition_failed': _('State transition failed'),
-                    'state_transition_completed': _('State transition completed'),
+                    'transition_initiated': _('State transition initiated'),
+                    'transition_started': _('State transition started'),
+                    'transition_failed': _('State transition failed'),
+                    'transition_completed': _('State transition completed'),
                 }
-                initial_state = 'state_started'
+                initial_state = 'transition_started'
                 transitions = {
-                    'start': StateTransition('state_transition_initiated', 'state_transition_started'),
-                    'complete': StateTransition('state_transition_started', 'state_transition_completed'),
-                    'fail': StateTransition('state_transition_started', 'state_transition_failed'),
+                    'start': StateTransition('transition_initiated', 'transition_started'),
+                    'complete': StateTransition('transition_started', 'transition_completed'),
+                    'fail': StateTransition(
+                            ('transition_initiated', 'transition_started'), 'transition_failed'),
                 }
                 # We don't need logging of state transitions in a state transition log entry,
                 # as this would cause eternal, recursively nested state transition models.
