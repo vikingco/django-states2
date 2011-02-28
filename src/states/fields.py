@@ -3,10 +3,6 @@ from django.db.models.fields.related import ForeignKey
 from django.db import models
 from functools import wraps
 
-# Tell south to use introspection rules from ForeignKey for this StateField
-from south.modelsinspector import add_introspection_rules
-add_introspection_rules([], ["^states\.fields\.StateField"])
-
 
 class StateField(ForeignKey):
     """
@@ -14,8 +10,12 @@ class StateField(ForeignKey):
     Actually a ForeignKey, but this field also makes sure that the initial
     state is automatically created after initiation of the model.
     """
-    def __init__(self, machine):
+    #def __init__(self, machine):
+    def __init__(self, *args, **kwargs):
+        print kwargs
+        machine = args[0] if args else kwargs['machine'] if 'machine' in kwargs else kwargs['to']
         ForeignKey.__init__(self, machine, null=False, blank=False, unique=True)
+        self.machine = machine
         self.__machine_state = machine
 
     def contribute_to_class(self, cls, name):
@@ -63,3 +63,16 @@ class StateField(ForeignKey):
 
         sender.save = new_save
 
+
+# Tell south to use introspection rules from ForeignKey for this StateField
+from south.modelsinspector import add_introspection_rules
+add_introspection_rules([], ["^states\.fields\.StateField"])
+#add_introspection_rules([
+#    (
+#        [StateField], # Class(es) these apply to
+#        [],           # Positional arguments (not used)
+#        {             # Keyword argument
+#            "machine": ["machine", {}],
+#        },
+#    ),
+#], [ "^states\.fields\.StateField"])
