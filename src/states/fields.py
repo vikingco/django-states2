@@ -10,9 +10,14 @@ class StateField(ForeignKey):
     Actually a ForeignKey, but this field also makes sure that the initial
     state is automatically created after initiation of the model.
     """
+        # TODO: __init__ is supposed to accept only the 'machine' argument,
+        #       but south will thread this as a ForeignKey, until we get our
+        #       introspection rules working. So accept also, all the foreign
+        #       key parameters.
+
+
     #def __init__(self, machine):
     def __init__(self, *args, **kwargs):
-        print kwargs
         machine = args[0] if args else kwargs['machine'] if 'machine' in kwargs else kwargs['to']
         ForeignKey.__init__(self, machine, null=False, blank=False, unique=True)
         self.machine = machine
