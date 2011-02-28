@@ -1,0 +1,47 @@
+===========================================================
+Django States (v2)
+===========================================================
+
+Author: Jonathan Slenders, City Live nv
+
+Description:
+
+    State engine for django models. Define a state graph for
+    a model and remember the state of each object.
+    State transitions can be logged for objects.
+
+
+
+Usage example:
+
+    It's basically these two things:
+    - Define a model derived from State, where you define the states and
+      transitions in a machine.
+    - Create a StateField in the model from which you want to track the state.
+
+
+    >  class PurchaseState(State):
+    >      class Machine:
+    >          states = {
+    >                  'initiated': _('Purchase initiated'),
+    >                  'paid': _('Purchase paid'),
+    >                  'redeeming': _('Redeeming'),
+    >                  'redeemed': _('Redeeming'),
+    >              }
+    >          initial_state = 'initiated'
+    >          transitions = {
+    >                  'accept': StateTransition(from_state='redeeming', to_state='redeemed')
+    >              }
+    >          log_transitions = True
+    >  
+    >  
+    >  class Purchase(models.Model):
+    >      state = StateField(machine=PurchaseState)
+    >      ... (other fields for a purchase)
+
+
+    This will create the necessary models. if `log_transitions` is enabled, two more models
+    are created. Everything should be compatible with South.
+
+
+
