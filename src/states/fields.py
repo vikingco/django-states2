@@ -3,6 +3,7 @@ from django.db.models.fields.related import ForeignKey
 from django.db import models
 from functools import wraps
 
+from states.exceptions import *
 
 class StateField(ForeignKey):
     """
@@ -46,7 +47,10 @@ class StateField(ForeignKey):
             """
             Run this state transition.
             """
-            return self.state._make_transition(transition, self, user)
+            if self.state_id:
+                return self.state._make_transition(transition, self, user)
+            else:
+                raise TransitionOnUnsavedObject(self)
 
         # Add 'make_transition' method to model.
         sender.make_transition = make_transition

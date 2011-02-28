@@ -16,24 +16,10 @@ from django.db.models.base import ModelBase
 from django.utils.translation import ugettext_lazy as _
 from functools import wraps
 from states.fields import StateField
+from states.exceptions import *
 
 import copy
 import datetime
-
-
-
-# =======================[ Exceptions ]=====================
-
-
-class UnknownTransition(Exception):
-    def __init__(self, instance, transition):
-        Exception.__init__(self, "Unknown transition '%s' on %s" %
-                    (transition, instance.__class__.__name__))
-
-class TransitionCannotStartnThisState(Exception):
-    def __init__(self, instance, transition):
-        Exception.__init__(self, "Transition '%s' on %s cannot start in the state '%s'" %
-                    (transition, instance.__class__.__name__, instance.value))
 
 
 # =======================[ Helper classes ]=====================
@@ -165,11 +151,9 @@ class State(models.Model):
         user: the user executing the transition
         instance: the object which will undergo the state transition.
         """
-            # TODO: make_transition is imcomplete...
-
         # Transition name should be known
         if not transition in self.Machine.transitions:
-            raise UnknownTransition(self, transition)
+            raise UnknownTransition(instance, transition)
         t = self.Machine.transitions[transition]
 
         # Start transition log
@@ -179,12 +163,12 @@ class State(models.Model):
         # Transition should start from here
         if self.value not in t.from_state:
             if self._log: transition_log.make_transition('fail')
-            raise TransitionCannotStartnThisState(self, transition)
+            raise TransitionCannotStart(instance, transition)
 
         # User should have permissions for this transition
         if not t.has_permission(instance, user):
             if self._log: transition_log.make_transition('fail')
-            raise StatePermissionFailed(transition)
+            raise PermissionDenied(instance, transition, user)
 
         # Execute
         if self._log: transition_log.make_transition('start')
