@@ -1,12 +1,12 @@
-
-from django.db import models
 from django.contrib.auth.models import User
-from functools import wraps
+from django.db import models
+from django.db.models.base import ModelBase
 from django.utils.translation import ugettext_lazy as _
+from functools import wraps
 from states.fields import StateField
 
-import datetime
 import copy
+import datetime
 
 
 class StateTransition(object):
@@ -14,27 +14,30 @@ class StateTransition(object):
         self.from_state = from_state
         self.to_state = to_state
 
-class StateManager(models.Manager):
-    pass
-
-from django.db.models.base import ModelBase
 
 class StateBase(ModelBase):
+    """
+    Metaclass for State models.
+    This metaclass will initiate a logging model as well, if required.
+    """
     def __new__(cls, name, bases, attrs):
         """
         Instantiation of the State type.
         When this type is created, also create logging model if required.
         """
         # Call class constructor of parent
-        state= ModelBase.__new__(cls, name, bases, attrs)
+        state_model = ModelBase.__new__(cls, name, bases, attrs)
 
         # If we need logging, create logging model
-        if state.Machine.log_transitions:
-            state.log = state.create_state_log_model(name)
+        if state_model.Machine.log_transitions:
+            state_model.log = state_model.create_state_log_model(name)
         else:
-            state.log = None
+            state_model.log = None
+        return state_model
 
-        return state
+
+class StateManager(models.Manager):
+    pass
 
 
 class State(models.Model):
@@ -136,8 +139,6 @@ class State(models.Model):
         """
         Create a new model for logging the state transitions.
         """
-        print 'creating log models'
-
         def copy_fields(model):
             fields = { '__module__': cls.__module__ }
 
@@ -194,3 +195,4 @@ class State(models.Model):
         # which will register it somewhere in a global variable.
 
         return state_transition_model
+

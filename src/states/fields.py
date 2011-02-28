@@ -3,6 +3,11 @@ from django.db.models.fields.related import ForeignKey
 from django.db import models
 from functools import wraps
 
+# Tell south to use introspection rules from ForeignKey for this StateField
+from south.modelsinspector import add_introspection_rules
+add_introspection_rules([], ["^states\.fields\.StateField"])
+
+
 class StateField(ForeignKey):
     """
     Statefield for a model.
@@ -57,3 +62,4 @@ class StateField(ForeignKey):
             pass
 
         sender.save = new_save
+
