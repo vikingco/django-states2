@@ -55,7 +55,9 @@ class StateField(ForeignKey):
         @wraps(original_save)
         def new_save(instance, *args, **kwargs):
             # If no state has been defined for this instance, save a state first.
-            if getattr(instance, self.__name) is None:
+            try:
+                getattr(instance, self.__name)
+            except self.__machine_state.DoesNotExist, e:
                 state = self.__machine_state()
                 state.save()
                 setattr(instance, self.__name, state)

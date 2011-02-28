@@ -30,9 +30,9 @@ class StateBase(ModelBase):
 
         # If we need logging, create logging model
         if state_model.Machine.log_transitions:
-            state_model.log = state_model.create_state_log_model(name)
+            state_model._log = state_model._create_state_log_model(name)
         else:
-            state_model.log = None
+            state_model._log = None
         return state_model
 
 
@@ -83,6 +83,16 @@ class State(models.Model):
         return 'State: ' + self.value
 
     @property
+    def transitions(self):
+        """
+        Return state transitions log model.
+        """
+        if self._log:
+            return self.all_transitions
+        else:
+            raise Exception('This model does not log state transitions. please enable it by setting log_transitions=True')
+
+    @property
     def description(self):
         """
         Get the full description of the (current) state
@@ -100,7 +110,7 @@ class State(models.Model):
 
         # Start transition log
         if self.log:
-            transition_log = self.log.objects.create(state = self, from_state = self.value, to_state = t.to, user = user)
+            transition_log = self.log.objects.create(on=self, from_state=self.value, to_state=t.to, user=user)
 
         # Transition should start from here
         if self.value != t.from_state:
@@ -131,29 +141,28 @@ class State(models.Model):
 
     @classmethod
     def get_state_choices(cls):
-        return cls.Machine.states.iteritems()
+        return cls.Machine.states.items()
 
 
     @classmethod
-    def create_state_log_model(cls, name):
+    def _create_state_log_model(cls, name):
         """
         Create a new model for logging the state transitions.
         """
-        def copy_fields(model):
-            fields = { '__module__': cls.__module__ }
+        class _StateTransitionStateMeta(StateBase):
+            """
+            Make _StateTransitionState act like it has another name,
+            and was defined in another model.
+            """
+            def __new__(c, name, bases, attrs):
+                attrs[ '__module__'] = cls.__module__
+                return StateBase.__new__(c, '%s_StateTransitionState' % cls.__name__, bases, attrs)
 
-            for f in model._meta.fields:
-                fields[f.name] = copy.copy(f)
-
-            if hasattr(model, 'Machine'):
-                fields['Machine'] = model.Machine
-
-            if hasattr(model, 'Meta'):
-                fields['Meta'] = model.Meta
-
-            return fields
-
-        class _StateTransitionState(models.Model):
+        class _StateTransitionState(State):
+            """
+            Log the progress of every individual state transition.
+            """
+            __metaclass__ = _StateTransitionStateMeta
             class Machine:
                 states = {
                     'state_transition_initiated': _('State transition initiated'),
@@ -171,25 +180,41 @@ class State(models.Model):
                 # as this would cause eternal, recursively nested state transition models.
                 log_transitions = False
 
-            class Meta:
-                abstract = True
+            @property
+            def completed(self):
+                return self.value == 'complete'
 
-        # We need to use 'type', because we want models.Model._new__ constructor to be called with this name.
-        state_transition_state_model = type('%s_StateTransitionState' % cls.__name__,
-                (State,), copy_fields(_StateTransitionState))
+            def __unicode__(self):
+                return '<State transition state on %s : "%s">' % (cls.__name__, self.value)
+
+        state_transition_state_model = _StateTransitionState
+
+        class _StateTransitionMeta(ModelBase):
+            """
+            Make _StateTransition act like it has another name,
+            and was defined in another model.
+            """
+            def __new__(c, name, bases, attrs):
+                attrs[ '__module__'] = cls.__module__
+                return ModelBase.__new__(c, '%s_StateTransition' % cls.__name__, bases, attrs)
 
         class _StateTransition(models.Model):
-            from_state = models.CharField(max_length=32)
-            to_state = models.CharField(max_length=32)
+            """
+            Log state transitions.
+            """
+            __metaclass__ = _StateTransitionMeta
+
+            from_state = models.CharField(max_length=32, choices=cls.get_state_choices())
+            to_state = models.CharField(max_length=32, choices=cls.get_state_choices())
             user = models.ForeignKey(User, blank=True, null=True)
 
             state = StateField(machine=state_transition_state_model)
+            on    = models.ForeignKey(cls, related_name='all_transitions')
 
-            class Meta:
-                abstract = True
+            def __unicode__(self):
+                return '<State transition on %s from "%s" to "%s">' % (cls.__name__, self.from_state, self.to_state)
 
-        state_transition_model = type('%s_StateTransition' % cls.__name__,
-            (models.Model, ), copy_fields(_StateTransition))
+        state_transition_model = _StateTransition
 
         # These models will be detected by South because of the models.Model.__new__ constructor,
         # which will register it somewhere in a global variable.
