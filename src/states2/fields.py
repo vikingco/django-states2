@@ -37,12 +37,20 @@ class StateField(ForeignKey):
         ForeignKey.contribute_to_class(self, cls, name)
 
     def __finalize(self, sender, **kwargs):
+        """
+        The class_prepared signal is triggered when ModelBase.__new__ has finished
+        creating the class where this field is used. `sender` is the class
+        object (not instance) which is created in __new__.
+        """
         # Capture set method of field descriptor
         descriptor = getattr(sender, self.name)
         self.__capture_set_method(descriptor)
 
         # Capture save method
         self.__capture_save_method(sender)
+
+        # Wrap __unicode__ object
+        self.__wrap_unicode(sender)
 
         # Add make_transition to the object which has a statefield
         self.__add_make_transition_method(sender)
@@ -68,6 +76,15 @@ class StateField(ForeignKey):
         def descriptor_set(self, instance, value):
             raise AttributeError("You shouldn't set the state this way.")
         descriptor.__set__ = descriptor_set
+
+    def __wrap_unicode(self, sender):
+        """
+        Print state behind __unicode__
+        """
+        u = sender.__unicode__ if hasattr(sender, '__unicode__') else sender.__str__
+        def new_unicode(o):
+            return '%s (%s)' % (u(o), o.state.description)
+        sender.__unicode__ = new_unicode
 
     def __capture_save_method(self, sender):
         """
