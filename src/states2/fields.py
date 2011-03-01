@@ -3,7 +3,7 @@ from django.db.models.fields.related import ForeignKey
 from django.db import models
 from functools import wraps
 
-from states.exceptions import *
+from states2.exceptions import *
 
 class StateField(ForeignKey):
     """
