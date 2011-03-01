@@ -91,7 +91,7 @@ class StateField(ForeignKey):
 
 # Tell south to use introspection rules from ForeignKey for this StateField
 from south.modelsinspector import add_introspection_rules
-add_introspection_rules([], ["^states\.fields\.StateField"])
+add_introspection_rules([], ["^states2\.fields\.StateField"])
 #add_introspection_rules([
 #    (
 #        [StateField], # Class(es) these apply to
@@ -100,4 +100,4 @@ add_introspection_rules([], ["^states\.fields\.StateField"])
 #            "machine": ["machine", {}],
 #        },
 #    ),
-#], [ "^states\.fields\.StateField"])
+#], [ "^states2\.fields\.StateField"])
