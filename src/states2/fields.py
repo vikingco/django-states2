@@ -20,12 +20,17 @@ class StateField(ForeignKey):
     #def __init__(self, machine):
     def __init__(self, *args, **kwargs):
         machine = args[0] if args else kwargs['machine'] if 'machine' in kwargs else kwargs['to']
-        ForeignKey.__init__(self, machine, null=False, blank=False, unique=True)
+                # NOTE: we tell django to allow null values, but save() will make sure that
+                #       a state is created. (necessary for the admin.)
+        ForeignKey.__init__(self, machine, null=True, blank=True, unique=True)
         self.machine = machine
-        self.__machine_state = machine
+        self._state_machine = machine
 
     def contribute_to_class(self, cls, name):
-        self.__name = name
+        if name != 'state':
+            raise Exception("Please call the StateField 'state' in the model where it's used")
+
+        self._name = name
         models.signals.class_prepared.connect(self.__finalize, sender=cls)
 
         # Call contribute_to_class of parent
@@ -73,18 +78,13 @@ class StateField(ForeignKey):
         @wraps(original_save)
         def new_save(instance, *args, **kwargs):
             # If no state has been defined for this instance, save a state first.
-            try:
-                getattr(instance, self.__name)
-            except self.__machine_state.DoesNotExist, e:
-                state = self.__machine_state()
+            if not getattr(instance, 'state'):
+                state = self._state_machine()
                 state.save()
-                setattr(instance, self.__name, state)
+                setattr(instance, self._name, state)
 
             # Call original save method
             original_save(instance, *args, **kwargs)
-
-            # Save state
-            pass
 
         sender.save = new_save
 
