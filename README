@@ -30,6 +30,7 @@ Usage example:
     >              }
     >          initial_state = 'initiated'
     >          transitions = {
+    >                  'pay': StateTransition(from_state='initiated', to_state='paid')
     >                  'accept': StateTransition(from_state='redeeming', to_state='redeemed')
     >              }
     >          log_transitions = True
@@ -44,4 +45,24 @@ Usage example:
     are created. Everything should be compatible with South.
 
 
+    Usage example:
+
+    p = Purchase()
+    p.save()   # Will automatically create state object for this purchase, in the initial state.
+    p.make_transition('initiate')
+    p.state.value  # Will return 'paid'
+    p.state.transitions.all() # Will return all the state transitions for this instance.
+    p.state.transitions.all()[0].user # The user who triggered this transition
+    p.state.transitions.all()[0].state.value # Will return 'complete' or 'failed', depending
+                            # on the state of this state transition.
+    
+
+    For better transition control, you can derive from StateTransition and override:
+
+        - has_permission(self, instance, user):
+            Check whether this user is allowed to make this transition.
+
+        - handler(self, instance, user):
+            Code to run during this transition. When an exception has been
+            raised in here, the transition will not be made.
 
