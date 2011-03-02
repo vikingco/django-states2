@@ -53,6 +53,10 @@ class StateTransition(object):
         """
         pass
 
+    @property
+    def description(self):
+        return 'From %s to %s' % (self.from_state, self.to_state)
+
 
 # =======================[ State ]=====================
 
@@ -138,6 +142,25 @@ class State(models.Model):
         else:
             raise Exception('This model does not log state transitions. please enable it by setting log_transitions=True')
 
+    @classmethod
+    def get_admin_actions(cls):
+        """
+        Create a list of actions for use in the Django Admin.
+        """
+        actions = []
+        def create_action(transition_name):
+            def action(modeladmin, request, queryset):
+                for o in queryset:
+                    o.make_transition(transition_name, request.user)
+            action.short_description = cls.Machine.transitions[transition_name].description
+            action.__name__ = 'state_transition_%s' % transition_name
+            return action
+
+        for t in cls.Machine.transitions.keys():
+            actions.append(create_action(t))
+
+        return actions
+
     @property
     def description(self):
         """
@@ -213,7 +236,7 @@ class State(models.Model):
                     'transition_failed': _('State transition failed'),
                     'transition_completed': _('State transition completed'),
                 }
-                initial_state = 'transition_started'
+                initial_state = 'transition_initiated'
                 transitions = {
                     'start': StateTransition('transition_initiated', 'transition_started'),
                     'complete': StateTransition('transition_started', 'transition_completed'),

@@ -66,3 +66,9 @@ Usage example:
             Code to run during this transition. When an exception has been
             raised in here, the transition will not be made.
 
+
+
+    Actions for the Django Admin:
+
+    >   class PurchaseAdmin(admin.ModelAdmin);
+    >       actions = Purchase.get_admin_state_actions()

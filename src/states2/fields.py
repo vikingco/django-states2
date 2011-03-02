@@ -55,6 +55,11 @@ class StateField(ForeignKey):
         # Add make_transition to the object which has a statefield
         self.__add_make_transition_method(sender)
 
+        # Create property sender.admin_state_actions
+        def get_admin_state_actions():
+            return self.machine.get_admin_actions()
+        sender.get_admin_state_actions = staticmethod(get_admin_state_actions)
+
     def __add_make_transition_method(self, sender):
         def make_transition(self, transition, user=None):
             """
