@@ -147,6 +147,7 @@ class State(models.Model):
         """
         Create a list of actions for use in the Django Admin.
         """
+        # TODO: dry run first
         actions = []
         def create_action(transition_name):
             def action(modeladmin, request, queryset):
@@ -267,19 +268,22 @@ class State(models.Model):
 
         class _StateTransition(models.Model):
             """
-            Log state transitions.
+            State transitions log entry.
             """
             __metaclass__ = _StateTransitionMeta
+                # TODO: add some description for this state transition
 
             from_state = models.CharField(max_length=32, choices=cls.get_state_choices())
             to_state = models.CharField(max_length=32, choices=cls.get_state_choices())
             user = models.ForeignKey(User, blank=True, null=True)
 
+            start_time = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=_('transition started at'))
             state = StateField(machine=state_transition_state_model)
             on    = models.ForeignKey(cls, related_name='all_transitions')
 
             def __unicode__(self):
-                return '<State transition on %s from "%s" to "%s">' % (cls.__name__, self.from_state, self.to_state)
+                return '<State transition on %s at %s from "%s" to "%s">' % (
+                            cls.__name__, self.start_time, self.from_state, self.to_state)
 
         state_transition_model = _StateTransition
 

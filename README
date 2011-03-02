@@ -67,6 +67,10 @@ Usage example:
             raised in here, the transition will not be made.
 
 
+    Get all objects in a certain state:
+
+    >  Purchase.objects.filter(state__value='initiated') 
+
 
     Actions for the Django Admin:
 
