@@ -70,8 +70,19 @@ class StateField(ForeignKey):
             else:
                 raise TransitionOnUnsavedObject(self)
 
+        def test_transition(self, transition, user=None):
+            """
+            Check whether this user can make this transition
+            Raise exception if impossible.
+            """
+            if self.state_id:
+                return self.state._test_transition(transition, self, user)
+            else:
+                raise TransitionOnUnsavedObject(self)
+
         # Add 'make_transition' method to model.
         sender.make_transition = make_transition
+        sender.test_transition = test_transition
 
     def __capture_set_method(self, descriptor):
         """

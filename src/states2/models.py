@@ -8,7 +8,7 @@ Base models for every State.
 """
 
 
-__all__ = ('StateTransition', 'State')
+__all__ = ('StateMachine', 'StateDefinition', 'StateTransition', 'State')
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -24,38 +24,118 @@ import datetime
 
 # =======================[ Helper classes ]=====================
 
+class MachineDefinitionException(Exception):
+    def __init__(self, machine, description):
+        Exception.__init__(self, 'Error in state machine definition: ' + description)
+
+
+class StateMachineMeta(type):
+    def __new__(c, name, bases, attrs):
+        """
+        Validate state machine, and make `states`, `transitions` and
+        `initial_state` attributes available.
+        """
+        states = { }
+        transitions = { }
+        initial_state = None
+        for a in attrs:
+            # All definitions derived from StateDefinition
+            # should be addressable by Machine.states
+            if isinstance(attrs[a], StateDefinitionMeta):
+                states[a] = attrs[a]
+                if states[a].initial:
+                    if not initial_state:
+                        initial_state = a
+                    else:
+                        raise Exception('Machine defined multiple initial states')
+
+            # All definitions derived from StateTransitionMeta
+            # should be addressable by Machine.transitions
+            if isinstance(attrs[a], StateTransitionMeta):
+                transitions[a] = attrs[a]
+
+        # At least one initial state required. (But don't throw error for the base defintion.)
+        if not initial_state and bases != (object,):
+            raise MachineDefinitionException(c, 'Machine does not define initial state')
+
+        attrs['states'] = states
+        attrs['transitions'] = transitions
+        attrs['initial_state'] = initial_state
+
+        return type.__new__(c, name, bases, attrs)
+
+    def has_transition(self, transition_name):
+        return transition_name in self.transitions
+
+    def get_transitions(self, transition_name):
+        return self.transitions[transition_name]
+
+
+class StateDefinitionMeta(type):
+    def __new__(c, name, bases, attrs):
+        """
+        Validate state definition
+        """
+        if bases != (object,):
+            if name.lower() != name:
+                raise Exception('Please use lowercase names for state definitions (instead of %s)' % name)
+            if not 'description' in attrs:
+                raise Exception('Please give a description to this state definition')
+        return type.__new__(c, name, bases, attrs)
+
+
+class StateTransitionMeta(type):
+    def __new__(c, name, bases, attrs):
+        if bases != (object,):
+            if not 'from_state' in attrs:
+                raise Exception('Please give a from_state to this state transition')
+            if not 'to_state' in attrs:
+                raise Exception('Please give a from_state to this state transition')
+            if not 'description' in attrs:
+                raise Exception('Please give a description to this state transition')
+
+        # Turn `has_permission` and `handler` into classmethods
+        for m in ('has_permission', 'handler'):
+            if m in attrs:
+                attrs[m] = classmethod(attrs[m])
+
+        return type.__new__(c, name, bases, attrs)
+
+    def __unicode__(self):
+        return '%s: (from %s to %s)' % (unicode(self.description), self.from_state, self.to_state)
+
+
+class StateMachine(object):
+    """ Base class for a state machine definition """
+    __metaclass__ = StateMachineMeta
+
+    # Log transitions by default
+    log_transitions = True
+
+
+class StateDefinition(object):
+    """ Base class for a state definition """
+    __metaclass__ = StateDefinitionMeta
+
+    # Not initial by default. The machine should define at least one state
+    # where initial=True
+    initial = False
+
+
 class StateTransition(object):
-    """
-    Datastructure for state transitions
-    """
-    def __init__(self, from_state, to_state):
-        # == From
-        if isinstance(from_state, basestring):
-            self.from_state = [ from_state ]
-        else:
-            assert isinstance(from_state, tuple), "from_state should be a state name or tuple"
-            self.from_state = from_state
+    """ Base class for a state transitions """
+    __metaclass__ = StateTransitionMeta
 
-        # == To
-        self.to_state = to_state
-
-    def has_permission(self, instance, user):
-        """
-        Override this method for special checking.
-        """
+    def has_permission(cls, instance, user):
+        """ Override this method for special checking.  """
         return True
 
-
-    def handler(self, instance, user):
+    def handler(cls, instance, user):
         """
         Override this method if some specific actions need
         to be executed during this state transition.
         """
         pass
-
-    @property
-    def description(self):
-        return 'From %s to %s' % (self.from_state, self.to_state)
 
 
 # =======================[ State ]=====================
@@ -103,26 +183,24 @@ class State(models.Model):
 
     __metaclass__ = StateBase
 
-    class Machine:
+    class Machine(StateMachine):
         """
-        Machine declaration. Needs to be overridden for every machine.
+        Example machine definition. State machines should not override this,
+        but create a new machine by inheriting directly from StateMachine.
         """
-        # Definition of states (mapping from state_slug to description)
-        states = {
-            'initial': _('Initial state'),
-            }
-
-        # The initial state, when an object is created. This should be
-        # a key from the dictionary above.
-        initial_state = 'initial'
-
-        # Possible transitions, and their names
-        transitions = {
-            'dummy': StateTransition(from_state='initial', to_state='initial'),
-        }
-
         # True when we should log all transitions
         log_transitions = False
+
+        # Definition of states (mapping from state_slug to description)
+        class initial(StateDefinition):
+            initial=True
+            description = _('Initial state')
+
+        # Possible transitions, and their names
+        class dummy(StateTransition):
+            from_state='initial'
+            to_state='initial'
+            description = _('Make dummy state transition')
 
     class Meta:
         verbose_name = _('state')
@@ -147,13 +225,25 @@ class State(models.Model):
         """
         Create a list of actions for use in the Django Admin.
         """
-        # TODO: dry run first
         actions = []
         def create_action(transition_name):
             def action(modeladmin, request, queryset):
+                # Dry run first
+                for o in queryset:
+                    try:
+                        o.test_transition(transition_name, request.user)
+                    except TransitionException, e:
+                        modeladmin.message_user(request, 'ERROR: %s on: %s' % (e.message, unicode(o)))
+                        return
+
+                # Make actual transitions
                 for o in queryset:
                     o.make_transition(transition_name, request.user)
-            action.short_description = cls.Machine.transitions[transition_name].description
+
+                # Feeback
+                modeladmin.message_user(request, _('State changed for %s objects.' % len(queryset)))
+
+            action.short_description = unicode(cls.Machine.transitions[transition_name])
             action.__name__ = 'state_transition_%s' % transition_name
             return action
 
@@ -167,7 +257,25 @@ class State(models.Model):
         """
         Get the full description of the (current) state
         """
-        return self.Machine.states[self.value]
+        return self.Machine.states[self.value].description
+
+    def _test_transition(self, transition, instance, user=None):
+        """
+        Return True when we exect this transition to be executed succesfully.
+        Raise Exception when this transition is impossible.
+        """
+        # Transition name should be known
+        if not self.Machine.has_transition(transition):
+            raise UnknownTransition(instance, transition)
+        t = self.Machine.get_transitions(transition)
+
+        if self.value not in t.from_state:
+            raise TransitionCannotStart(instance, transition)
+
+        # User should have permissions for this transition
+        if not t.has_permission(instance, user):
+            raise PermissionDenied(instance, transition, user)
+        return True
 
     def _make_transition(self, transition, instance, user=None):
         """
@@ -176,9 +284,9 @@ class State(models.Model):
         instance: the object which will undergo the state transition.
         """
         # Transition name should be known
-        if not transition in self.Machine.transitions:
+        if not self.Machine.has_transition(transition):
             raise UnknownTransition(instance, transition)
-        t = self.Machine.transitions[transition]
+        t = self.Machine.get_transitions(transition)
 
         # Start transition log
         if self._log:
@@ -230,23 +338,35 @@ class State(models.Model):
             Log the progress of every individual state transition.
             """
             __metaclass__ = _StateTransitionStateMeta
-            class Machine:
-                states = {
-                    'transition_initiated': _('State transition initiated'),
-                    'transition_started': _('State transition started'),
-                    'transition_failed': _('State transition failed'),
-                    'transition_completed': _('State transition completed'),
-                }
-                initial_state = 'transition_initiated'
-                transitions = {
-                    'start': StateTransition('transition_initiated', 'transition_started'),
-                    'complete': StateTransition('transition_started', 'transition_completed'),
-                    'fail': StateTransition(
-                            ('transition_initiated', 'transition_started'), 'transition_failed'),
-                }
+            class Machine(StateMachine):
                 # We don't need logging of state transitions in a state transition log entry,
                 # as this would cause eternal, recursively nested state transition models.
                 log_transitions = False
+
+                class transition_initiated(StateDefinition):
+                    description = _('State transition initiated')
+                    initial = True
+                class transition_started(StateDefinition):
+                    description = _('State transition initiated')
+                class transition_failed(StateDefinition):
+                    description = _('State transition failed')
+                class transition_completed(StateDefinition):
+                    description = _('State transition completed')
+
+                class start(StateTransition):
+                    from_state = 'transition_initiated'
+                    to_state = 'transition_started'
+                    description = _('Start state transition')
+
+                class complete(StateTransition):
+                    from_state = 'transition_started'
+                    to_state = 'transition_completed'
+                    description = _('Complete state transition')
+
+                class fail(StateTransition):
+                    from_state = ('transition_initiated', 'transition_started')
+                    to_state = 'transition_failed'
+                    description = _('Mark state transition as failed')
 
             @property
             def completed(self):

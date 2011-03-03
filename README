@@ -21,21 +21,37 @@ Usage example:
 
 
     >  class PurchaseState(State):
-    >      class Machine:
-    >          states = {
-    >                  'initiated': _('Purchase initiated'),
-    >                  'paid': _('Purchase paid'),
-    >                  'redeeming': _('Redeeming'),
-    >                  'redeemed': _('Redeeming'),
-    >              }
-    >          initial_state = 'initiated'
-    >          transitions = {
-    >                  'pay': StateTransition(from_state='initiated', to_state='paid')
-    >                  'accept': StateTransition(from_state='redeeming', to_state='redeemed')
-    >              }
+    >      class Machine(StateMachine):
     >          log_transitions = True
-    >  
-    >  
+    >
+    >
+    >          class initiated(StateDefinition):
+    >              description = _('Purchase initiated')
+    >              initial = True
+    >
+    >          class paid(StateDefinition):
+    >              description = _('Purchase paid')
+    >
+    >          class shipped(StateDefinition):
+    >              description = _('Purchase shipped')
+    >
+    >
+    >          class mark_paid(StateTransition):
+    >              from_state = 'initiated'
+    >              to_state = 'paid'
+    >              description = 'Mark this purchase as paid'
+    >
+    >          class ship(StateTransition):
+    >              from_state = 'paid'
+    >              to_state = 'shipped'
+    >              description = 'Ship purchase'
+    >
+    >              def handler(transition, instance, user):
+    >                  code_to_execute_during_this_transition()
+    >
+    >              def has_permission(transition, instance, user):
+    >                  return true_when_user_can_make_this_transition()
+    >
     >  class Purchase(models.Model):
     >      state = StateField(machine=PurchaseState)
     >      ... (other fields for a purchase)
@@ -57,7 +73,7 @@ Usage example:
                             # on the state of this state transition.
     
 
-    For better transition control, you can derive from StateTransition and override:
+    For better transition control, override:
 
         - has_permission(self, instance, user):
             Check whether this user is allowed to make this transition.
