@@ -15,50 +15,50 @@ Description:
 Usage example:
 
     It's basically these two things:
-    - Define a model derived from State, where you define the states and
-      transitions in a machine.
-    - Create a StateField in the model from which you want to track the state.
+    - Derived your model from StateModel
+    - Add a Machine class to your model, for the state machine
 
 
-    >  class PurchaseState(State):
-    >      class Machine(StateMachine):
-    >          log_transitions = True
+    >  class PurchaseStateMachine(State):
+    >     log_transitions = True
     >
     >
-    >          class initiated(StateDefinition):
-    >              description = _('Purchase initiated')
-    >              initial = True
+    >     class initiated(StateDefinition):
+    >         description = _('Purchase initiated')
+    >         initial = True
     >
-    >          class paid(StateDefinition):
-    >              description = _('Purchase paid')
+    >     class paid(StateDefinition):
+    >         description = _('Purchase paid')
     >
-    >          class shipped(StateDefinition):
-    >              description = _('Purchase shipped')
+    >     class shipped(StateDefinition):
+    >         description = _('Purchase shipped')
     >
     >
-    >          class mark_paid(StateTransition):
-    >              from_state = 'initiated'
-    >              to_state = 'paid'
-    >              description = 'Mark this purchase as paid'
+    >     class mark_paid(StateTransition):
+    >         from_state = 'initiated'
+    >         to_state = 'paid'
+    >         description = 'Mark this purchase as paid'
     >
-    >          class ship(StateTransition):
-    >              from_state = 'paid'
-    >              to_state = 'shipped'
-    >              description = 'Ship purchase'
+    >     class ship(StateTransition):
+    >         from_state = 'paid'
+    >         to_state = 'shipped'
+    >         description = 'Ship purchase'
     >
-    >              def handler(transition, instance, user):
-    >                  code_to_execute_during_this_transition()
+    >         def handler(transition, instance, user):
+    >             code_to_execute_during_this_transition()
     >
-    >              def has_permission(transition, instance, user):
-    >                  return true_when_user_can_make_this_transition()
+    >         def has_permission(transition, instance, user):
+    >             return true_when_user_can_make_this_transition()
     >
-    >  class Purchase(models.Model):
-    >      state = StateField(machine=PurchaseState)
+    >  class Purchase(StateModel):
+    >      Machine = PurchaseStateMachine
     >      ... (other fields for a purchase)
 
 
-    This will create the necessary models. if `log_transitions` is enabled, two more models
-    are created. Everything should be compatible with South.
+    You may of course nest the Machine class, like you would usually do for Meta.
+
+    This will create the necessary models. if `log_transitions` is enabled, another models
+    is created. Everything should be compatible with South.
 
 
     Usage example:
@@ -66,10 +66,10 @@ Usage example:
     p = Purchase()
     p.save()   # Will automatically create state object for this purchase, in the initial state.
     p.make_transition('initiate')
-    p.state.value  # Will return 'paid'
-    p.state.transitions.all() # Will return all the state transitions for this instance.
-    p.state.transitions.all()[0].user # The user who triggered this transition
-    p.state.transitions.all()[0].state.value # Will return 'complete' or 'failed', depending
+    p.state # Will return 'paid'
+    p.state_transitions.all() # Will return all the state transitions for this instance.
+    p.state_transitions.all()[0].user # The user who triggered this transition
+    p.state_transitions.all()[0].state # Will return 'complete' or 'failed', depending
                             # on the state of this state transition.
     
 
@@ -85,10 +85,10 @@ Usage example:
 
     Get all objects in a certain state:
 
-    >  Purchase.objects.filter(state__value='initiated') 
+    >  Purchase.objects.filter(state='initiated') 
 
 
     Actions for the Django Admin:
 
     >   class PurchaseAdmin(admin.ModelAdmin);
-    >       actions = Purchase.get_admin_state_actions()
+    >       actions = Purchase.Machine.get_admin_actions()

@@ -8,7 +8,7 @@ Base models for every State.
 """
 
 
-__all__ = ('StateMachine', 'StateDefinition', 'StateTransition', 'State')
+__all__ = ('StateMachine', 'StateDefinition', 'StateTransition', 'StateModel')
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -47,7 +47,7 @@ class StateMachineMeta(type):
                     if not initial_state:
                         initial_state = a
                     else:
-                        raise Exception('Machine defined multiple initial states')
+                        raise Exception('Machine defines multiple initial states')
 
             # All definitions derived from StateTransitionMeta
             # should be addressable by Machine.transitions
@@ -124,6 +124,39 @@ class StateMachine(object):
     # Log transitions by default
     log_transitions = True
 
+    @classmethod
+    def get_admin_actions(cls):
+        """
+        Create a list of actions for use in the Django Admin.
+        """
+        actions = []
+        def create_action(transition_name):
+            def action(modeladmin, request, queryset):
+                # Dry run first
+                for o in queryset:
+                    try:
+                        o.test_transition(transition_name, request.user)
+                    except TransitionException, e:
+                        modeladmin.message_user(request, 'ERROR: %s on: %s' % (e.message, unicode(o)))
+                        return
+
+                # Make actual transitions
+                for o in queryset:
+                    o.make_transition(transition_name, request.user)
+
+                # Feeback
+                modeladmin.message_user(request, _('State changed for %s objects.' % len(queryset)))
+
+            action.short_description = unicode(cls.transitions[transition_name])
+            action.__name__ = 'state_transition_%s' % transition_name
+            return action
+
+        for t in cls.transitions.keys():
+            actions.append(create_action(t))
+
+        return actions
+
+
 
 class StateDefinition(object):
     """ Base class for a state definition """
@@ -156,7 +189,7 @@ class StateTransition(object):
 
 # =======================[ State ]=====================
 
-class StateBase(ModelBase):
+class StateModelBase(ModelBase):
     """
     Metaclass for State models.
     This metaclass will initiate a logging model as well, if required.
@@ -171,38 +204,32 @@ class StateBase(ModelBase):
 
         # If we need logging, create logging model
         if state_model.Machine.log_transitions:
-            state_model._log = state_model._create_state_log_model(name)
+            state_model._state_log = _create_state_log_model(state_model, name)
         else:
-            state_model._log = None
+            state_model._state_log = None
 
         # Link default value for the State Machine
         for f in state_model._meta.fields:
-            if f.name == 'value':
+            if f.name == 'state':
                 f.default = state_model.Machine.initial_state
 
         return state_model
 
 
-class StateManager(models.Manager):
-    pass
 
-
-class State(models.Model):
+class StateModel(models.Model):
     """
-    Every state table should inherit this model.
+    Every model which needs state should inherit this abstract model.
     """
-    updated_on = models.DateTimeField(auto_now=True, default=datetime.datetime.now)
-    #value = models.CharField(max_length=64, choices=get_state_choices(), default='0', verbose_name=_('state id'))
-    value = models.CharField(max_length=64, default='0', verbose_name=_('state id'))
+    #state = models.CharField(max_length=64, choices=get_state_choices(), default='0', verbose_name=_('state id'))
+    state = models.CharField(max_length=64, default='0', verbose_name=_('state id'))
 
-    objects = StateManager()
-
-    __metaclass__ = StateBase
+    __metaclass__ = StateModelBase
 
     class Machine(StateMachine):
         """
-        Example machine definition. State machines should not override this,
-        but create a new machine by inheriting directly from StateMachine.
+        Example machine definition. State machines should override this by
+        creating a new machine, inherited directly from StateMachine.
         """
         # True when we should log all transitions
         log_transitions = False
@@ -224,14 +251,14 @@ class State(models.Model):
         abstract = True
 
     def __unicode__(self):
-        return 'State: ' + self.value
+        return 'State: ' + self.state
 
     @property
-    def transitions(self):
+    def state_transitions(self):
         """
         Return state transitions log model.
         """
-        if self._log:
+        if self._state_log:
             return self.all_transitions # Almost similar to: self._log.objects.filter(on=self)
         else:
             raise Exception('This model does not log state transitions. please enable it by setting log_transitions=True')
@@ -242,51 +269,19 @@ class State(models.Model):
         Return the transitions which are meant to be seen by the customer. (The
         admin on the other hand should be able to see everything.)
         """
-        if self._log:
-            return filter(lambda t: t.is_public and t.state.completed, self.transitions.all())
+        if self._state_log:
+            return filter(lambda t: t.is_public and t.completed, self.state_transitions.all())
         else:
             return []
 
-    @classmethod
-    def get_admin_actions(cls):
-        """
-        Create a list of actions for use in the Django Admin.
-        """
-        actions = []
-        def create_action(transition_name):
-            def action(modeladmin, request, queryset):
-                # Dry run first
-                for o in queryset:
-                    try:
-                        o.test_transition(transition_name, request.user)
-                    except TransitionException, e:
-                        modeladmin.message_user(request, 'ERROR: %s on: %s' % (e.message, unicode(o)))
-                        return
-
-                # Make actual transitions
-                for o in queryset:
-                    o.make_transition(transition_name, request.user)
-
-                # Feeback
-                modeladmin.message_user(request, _('State changed for %s objects.' % len(queryset)))
-
-            action.short_description = unicode(cls.Machine.transitions[transition_name])
-            action.__name__ = 'state_transition_%s' % transition_name
-            return action
-
-        for t in cls.Machine.transitions.keys():
-            actions.append(create_action(t))
-
-        return actions
-
     @property
-    def description(self):
+    def state_description(self):
         """
         Get the full description of the (current) state
         """
         return self.Machine.states[self.value].description
 
-    def _test_transition(self, transition, instance, user=None):
+    def test_transition(self, transition, instance, user=None):
         """
         Return True when we exect this transition to be executed succesfully.
         Raise Exception when this transition is impossible.
@@ -304,41 +299,40 @@ class State(models.Model):
             raise PermissionDenied(instance, transition, user)
         return True
 
-    def _make_transition(self, transition, instance, user=None):
+    def make_transition(self, transition, user=None):
         """
         Execute state transition
         user: the user executing the transition
-        instance: the object which will undergo the state transition.
         """
         # Transition name should be known
         if not self.Machine.has_transition(transition):
-            raise UnknownTransition(instance, transition)
+            raise UnknownTransition(self, transition)
         t = self.Machine.get_transitions(transition)
 
         # Start transition log
-        if self._log:
-            transition_log = self._log.objects.create(on=self, from_state=self.value, to_state=t.to_state, user=user)
+        if self._state_log:
+            transition_log = self._state_log.objects.create(on=self, from_state=self.state, to_state=t.to_state, user=user)
 
         # Transition should start from here
-        if self.value not in t.from_state:
-            if self._log: transition_log.make_transition('fail')
-            raise TransitionCannotStart(instance, transition)
+        if self.state not in t.from_state:
+            if self._state_log: transition_log.make_transition('fail')
+            raise TransitionCannotStart(self, transition)
 
         # User should have permissions for this transition
-        if not t.has_permission(instance, user):
-            if self._log: transition_log.make_transition('fail')
-            raise PermissionDenied(instance, transition, user)
+        if not t.has_permission(self, user):
+            if self._state_log: transition_log.make_transition('fail')
+            raise PermissionDenied(self, transition, user)
 
         # Execute
-        if self._log: transition_log.make_transition('start')
+        if self._state_log: transition_log.make_transition('start')
 
         try:
-            t.handler(instance, user)
-            self.value = t.to_state
+            t.handler(self, user)
+            self.state = t.to_state
             self.save()
-            if self._log: transition_log.make_transition('complete')
+            if self._state_log: transition_log.make_transition('complete')
         except Exception, e:
-            if self._log: transition_log.make_transition('fail')
+            if self._state_log: transition_log.make_transition('fail')
             raise e
 
     @classmethod
@@ -346,123 +340,101 @@ class State(models.Model):
         return cls.Machine.states.items()
 
 
-    @classmethod
-    def _create_state_log_model(cls, name):
+def _create_state_log_model(state_model, name):
+    """
+    Create a new model for logging the state transitions.
+    """
+    class StateTransitionMachine(StateMachine):
+        # We don't need logging of state transitions in a state transition log entry,
+        # as this would cause eternal, recursively nested state transition models.
+        log_transitions = False
+
+        class transition_initiated(StateDefinition):
+            description = _('State transition initiated')
+            initial = True
+        class transition_started(StateDefinition):
+            description = _('State transition initiated')
+        class transition_failed(StateDefinition):
+            description = _('State transition failed')
+        class transition_completed(StateDefinition):
+            description = _('State transition completed')
+
+        class start(StateTransition):
+            from_state = 'transition_initiated'
+            to_state = 'transition_started'
+            description = _('Start state transition')
+
+        class complete(StateTransition):
+            from_state = 'transition_started'
+            to_state = 'transition_completed'
+            description = _('Complete state transition')
+
+        class fail(StateTransition):
+            from_state = ('transition_initiated', 'transition_started')
+            to_state = 'transition_failed'
+            description = _('Mark state transition as failed')
+
+    class _StateTransitionMeta(StateModelBase):
         """
-        Create a new model for logging the state transitions.
+        Make _StateTransition act like it has another name,
+        and was defined in another model.
         """
-        class _StateTransitionStateMeta(StateBase):
+        def __new__(c, name, bases, attrs):
+            attrs[ '__module__'] = state_model.__module__
+            return StateModelBase.__new__(c, '%s_StateTransition' % state_model.__name__, bases, attrs)
+
+    class _StateTransition(StateModel):
+        """
+        State transitions log entry.
+        """
+        __metaclass__ = _StateTransitionMeta
+
+        from_state = models.CharField(max_length=32, choices=state_model.get_state_choices())
+        to_state = models.CharField(max_length=32, choices=state_model.get_state_choices())
+        user = models.ForeignKey(User, blank=True, null=True)
+
+        start_time = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=_('transition started at'))
+        on    = models.ForeignKey(state_model, related_name='all_transitions')
+
+        Machine = StateTransitionMachine
+
+        @property
+        def completed(self):
+            return self.state == 'transition_completed'
+
+        @property
+        def state_transition_definition(self):
+            return state_model.Machine.get_transition_from_states(self.from_state, self.to_state)
+
+        @property
+        def state_definition(self):
+            return state_model.Machine.get_state(self.to_state)
+
+        @property
+        def state_description(self):
+            return unicode(self.state_definition.description)
+
+        @property
+        def is_public(self):
             """
-            Make _StateTransitionState act like it has another name,
-            and was defined in another model.
+            Return True when this state transition is defined public in the machine.
             """
-            def __new__(c, name, bases, attrs):
-                attrs[ '__module__'] = cls.__module__
-                return StateBase.__new__(c, '%s_StateTransitionState' % cls.__name__, bases, attrs)
+            return self.state_transition_definition.public
 
-        class _StateTransitionState(State):
+        @property
+        def transition_description(self):
             """
-            Log the progress of every individual state transition.
+            Return the description for this transition as defined in the
+            StateTransition declaration of the machine.
             """
-            __metaclass__ = _StateTransitionStateMeta
-            class Machine(StateMachine):
-                # We don't need logging of state transitions in a state transition log entry,
-                # as this would cause eternal, recursively nested state transition models.
-                log_transitions = False
+            return unicode(self.state_transition_definition.description)
 
-                class transition_initiated(StateDefinition):
-                    description = _('State transition initiated')
-                    initial = True
-                class transition_started(StateDefinition):
-                    description = _('State transition initiated')
-                class transition_failed(StateDefinition):
-                    description = _('State transition failed')
-                class transition_completed(StateDefinition):
-                    description = _('State transition completed')
+        def __unicode__(self):
+            return '<State transition on %s at %s from "%s" to "%s">' % (
+                        state_model.__name__, self.start_time, self.from_state, self.to_state)
 
-                class start(StateTransition):
-                    from_state = 'transition_initiated'
-                    to_state = 'transition_started'
-                    description = _('Start state transition')
+    # This model will be detected by South because of the models.Model.__new__ constructor,
+    # which will register it somewhere in a global variable.
 
-                class complete(StateTransition):
-                    from_state = 'transition_started'
-                    to_state = 'transition_completed'
-                    description = _('Complete state transition')
-
-                class fail(StateTransition):
-                    from_state = ('transition_initiated', 'transition_started')
-                    to_state = 'transition_failed'
-                    description = _('Mark state transition as failed')
-
-            @property
-            def completed(self):
-                return self.value == 'transition_completed'
-
-            def __unicode__(self):
-                return '<State transition state on %s : "%s">' % (cls.__name__, self.value)
-
-        state_transition_state_model = _StateTransitionState
-
-        class _StateTransitionMeta(ModelBase):
-            """
-            Make _StateTransition act like it has another name,
-            and was defined in another model.
-            """
-            def __new__(c, name, bases, attrs):
-                attrs[ '__module__'] = cls.__module__
-                return ModelBase.__new__(c, '%s_StateTransition' % cls.__name__, bases, attrs)
-
-        class _StateTransition(models.Model):
-            """
-            State transitions log entry.
-            """
-            __metaclass__ = _StateTransitionMeta
-                # TODO: add some description for this state transition
-
-            from_state = models.CharField(max_length=32, choices=cls.get_state_choices())
-            to_state = models.CharField(max_length=32, choices=cls.get_state_choices())
-            user = models.ForeignKey(User, blank=True, null=True)
-
-            start_time = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=_('transition started at'))
-            state = StateField(machine=state_transition_state_model)
-            on    = models.ForeignKey(cls, related_name='all_transitions')
-
-            @property
-            def state_transition_definition(self):
-                return cls.Machine.get_transition_from_states(self.from_state, self.to_state)
-
-            @property
-            def state_definiton(self):
-                return cls.Machine.get_state(self.to_state)
-
-            @property
-            def state_description(self):
-                return unicode(self.state_definiton.description)
-
-            @property
-            def is_public(self):
-                """
-                Return True when this state transition is defined public in the machine.
-                """
-                return self.state_transition_definition.public
-
-            @property
-            def transition_description(self):
-                """
-                Return the description for this transition as defined in the
-                StateTransition declaration of the machine.
-                """
-                return unicode(self.state_transition_definition.description)
-
-            def __unicode__(self):
-                return '<State transition on %s at %s from "%s" to "%s">' % (
-                            cls.__name__, self.start_time, self.from_state, self.to_state)
-
-        state_transition_model = _StateTransition
-
-        # These models will be detected by South because of the models.Model.__new__ constructor,
-        # which will register it somewhere in a global variable.
-
-        return state_transition_model
+    return _StateTransition
 

@@ -23,4 +23,4 @@ class UnknownTransition(TransitionException):
 class TransitionCannotStart(TransitionException):
     def __init__(self, instance, transition):
         Exception.__init__(self, "Transition '%s' on %s cannot start in the state '%s'" %
-                    (transition, instance.__class__.__name__, instance.state.value))
+                    (transition, instance.__class__.__name__, instance.state))
