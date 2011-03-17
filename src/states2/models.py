@@ -70,6 +70,18 @@ class StateMachineMeta(type):
     def get_transitions(self, transition_name):
         return self.transitions[transition_name]
 
+    def has_state(self, state_name):
+        return state_name in self.states
+
+    def get_state(self, state_name):
+        return self.states[state_name]
+
+    def get_transition_from_states(self, from_state, to_state):
+        for t in self.transitions.values():
+            if t.from_state == from_state and t.to_state == to_state:
+                return t
+        raise Exception("Transition not found")
+
 
 class StateDefinitionMeta(type):
     def __new__(c, name, bases, attrs):
@@ -125,6 +137,10 @@ class StateDefinition(object):
 class StateTransition(object):
     """ Base class for a state transitions """
     __metaclass__ = StateTransitionMeta
+
+    # When a transition has been defined as public, is meant to be seen
+    # by the end-user.
+    public = False
 
     def has_permission(cls, instance, user):
         """ Override this method for special checking.  """
@@ -219,6 +235,17 @@ class State(models.Model):
             return self.all_transitions # Almost similar to: self._log.objects.filter(on=self)
         else:
             raise Exception('This model does not log state transitions. please enable it by setting log_transitions=True')
+
+    @property
+    def public_transitions(self):
+        """
+        Return the transitions which are meant to be seen by the customer. (The
+        admin on the other hand should be able to see everything.)
+        """
+        if self._log:
+            return filter(lambda t: t.is_public and t.state.completed, self.transitions.all())
+        else:
+            return []
 
     @classmethod
     def get_admin_actions(cls):
@@ -370,7 +397,7 @@ class State(models.Model):
 
             @property
             def completed(self):
-                return self.value == 'complete'
+                return self.value == 'transition_completed'
 
             def __unicode__(self):
                 return '<State transition state on %s : "%s">' % (cls.__name__, self.value)
@@ -400,6 +427,33 @@ class State(models.Model):
             start_time = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=_('transition started at'))
             state = StateField(machine=state_transition_state_model)
             on    = models.ForeignKey(cls, related_name='all_transitions')
+
+            @property
+            def state_transition_definition(self):
+                return cls.Machine.get_transition_from_states(self.from_state, self.to_state)
+
+            @property
+            def state_definiton(self):
+                return cls.Machine.get_state(self.to_state)
+
+            @property
+            def state_description(self):
+                return unicode(self.state_definiton.description)
+
+            @property
+            def is_public(self):
+                """
+                Return True when this state transition is defined public in the machine.
+                """
+                return self.state_transition_definition.public
+
+            @property
+            def transition_description(self):
+                """
+                Return the description for this transition as defined in the
+                StateTransition declaration of the machine.
+                """
+                return unicode(self.state_transition_definition.description)
 
             def __unicode__(self):
                 return '<State transition on %s at %s from "%s" to "%s">' % (
