@@ -15,7 +15,6 @@ from django.db import models
 from django.db.models.base import ModelBase
 from django.utils.translation import ugettext_lazy as _
 from functools import wraps
-from states2.fields import StateField
 from states2.exceptions import *
 
 import copy
