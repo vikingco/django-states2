@@ -198,6 +198,12 @@ class StateModelBase(ModelBase):
         Instantiation of the State type.
         When this type is created, also create logging model if required.
         """
+        # Wrap __unicode__ for state model
+        old_unicode = attrs['__unicode__']
+        def new_unicode(self):
+            return '%s (%s)' % (old_unicode(self), self.Machine.get_state(self.state).description)
+        attrs['__unicode__'] = new_unicode
+
         # Call class constructor of parent
         state_model = ModelBase.__new__(cls, name, bases, attrs)
 
@@ -280,22 +286,22 @@ class StateModel(models.Model):
         """
         return self.Machine.states[self.value].description
 
-    def test_transition(self, transition, instance, user=None):
+    def test_transition(self, transition, user=None):
         """
         Return True when we exect this transition to be executed succesfully.
         Raise Exception when this transition is impossible.
         """
         # Transition name should be known
         if not self.Machine.has_transition(transition):
-            raise UnknownTransition(instance, transition)
+            raise UnknownTransition(self, transition)
         t = self.Machine.get_transitions(transition)
 
-        if self.value not in t.from_state:
-            raise TransitionCannotStart(instance, transition)
+        if self.state not in t.from_state:
+            raise TransitionCannotStart(self, transition)
 
         # User should have permissions for this transition
-        if not t.has_permission(instance, user):
-            raise PermissionDenied(instance, transition, user)
+        if not t.has_permission(self, user):
+            raise PermissionDenied(self, transition, user)
         return True
 
     def make_transition(self, transition, user=None):
