@@ -217,6 +217,7 @@ class StateModelBase(ModelBase):
         for f in state_model._meta.fields:
             if f.name == 'state':
                 f.default = state_model.Machine.initial_state
+                f._choices = state_model.get_state_choices()
 
         return state_model
 
@@ -226,7 +227,6 @@ class StateModel(models.Model):
     """
     Every model which needs state should inherit this abstract model.
     """
-    #state = models.CharField(max_length=64, choices=get_state_choices(), default='0', verbose_name=_('state id'))
     state = models.CharField(max_length=64, default='0', verbose_name=_('state id'))
 
     __metaclass__ = StateModelBase
@@ -342,7 +342,7 @@ class StateModel(models.Model):
 
     @classmethod
     def get_state_choices(cls):
-        return cls.Machine.states.items()
+        return [ (k, cls.Machine.states[k].description) for k in cls.Machine.states.keys() ]
 
 
 def _create_state_log_model(state_model, name):
