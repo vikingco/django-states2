@@ -209,9 +209,9 @@ class StateModelBase(ModelBase):
 
         # If we need logging, create logging model
         if state_model.Machine.log_transitions:
-            state_model._state_log = _create_state_log_model(state_model, name)
+            state_model._state_log_model = _create_state_log_model(state_model, name)
         else:
-            state_model._state_log = None
+            state_model._state_log_model = None
 
         # Link default value for the State Machine
         for f in state_model._meta.fields:
@@ -263,7 +263,7 @@ class StateModel(models.Model):
         """
         Return state transitions log model.
         """
-        if self._state_log:
+        if self._state_log_model:
             return self.all_transitions # Almost similar to: self._log.objects.filter(on=self)
         else:
             raise Exception('This model does not log state transitions. please enable it by setting log_transitions=True')
@@ -274,7 +274,7 @@ class StateModel(models.Model):
         Return the transitions which are meant to be seen by the customer. (The
         admin on the other hand should be able to see everything.)
         """
-        if self._state_log:
+        if self._state_log_model:
             return filter(lambda t: t.is_public and t.completed, self.state_transitions.all())
         else:
             return []
@@ -315,29 +315,29 @@ class StateModel(models.Model):
         t = self.Machine.get_transitions(transition)
 
         # Start transition log
-        if self._state_log:
-            transition_log = self._state_log.objects.create(on=self, from_state=self.state, to_state=t.to_state, user=user)
+        if self._state_log_model:
+            transition_log = self._state_log_model.objects.create(on=self, from_state=self.state, to_state=t.to_state, user=user)
 
         # Transition should start from here
         if self.state not in t.from_state:
-            if self._state_log: transition_log.make_transition('fail')
+            if self._state_log_model: transition_log.make_transition('fail')
             raise TransitionCannotStart(self, transition)
 
         # User should have permissions for this transition
         if not t.has_permission(self, user):
-            if self._state_log: transition_log.make_transition('fail')
+            if self._state_log_model: transition_log.make_transition('fail')
             raise PermissionDenied(self, transition, user)
 
         # Execute
-        if self._state_log: transition_log.make_transition('start')
+        if self._state_log_model: transition_log.make_transition('start')
 
         try:
             t.handler(self, user)
             self.state = t.to_state
             self.save()
-            if self._state_log: transition_log.make_transition('complete')
+            if self._state_log_model: transition_log.make_transition('complete')
         except Exception, e:
-            if self._state_log: transition_log.make_transition('fail')
+            if self._state_log_model: transition_log.make_transition('fail')
             raise e
 
     @classmethod
@@ -402,6 +402,9 @@ def _create_state_log_model(state_model, name):
         on    = models.ForeignKey(state_model, related_name='all_transitions')
 
         Machine = StateTransitionMachine
+
+        class Meta:
+            verbose_name = _('%s state transition log entry') % state_model._meta.verbose_name
 
         @property
         def completed(self):
