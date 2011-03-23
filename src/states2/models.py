@@ -115,6 +115,13 @@ class StateTransitionMeta(type):
     def __unicode__(self):
         return '%s: (from %s to %s)' % (unicode(self.description), self.from_state, self.to_state)
 
+    @property
+    def name(self):
+        """
+        The name of the state transition is always given by its classname
+        """
+        return self.__name__
+
 
 class StateMachine(object):
     """ Base class for a state machine definition """
@@ -292,6 +299,16 @@ class StateModel(models.Model):
         returns True when the current state is the initial state
         """
         return bool(self.Machine.get_state(self.state).initial)
+
+    @property
+    def possible_transitions(self):
+        """
+        Return list of transitions which can be made from the current state.
+        """
+        for name in self.Machine.transitions:
+            t = self.Machine.transitions[name]
+            if t.from_state == self.state:
+                yield t
 
     def test_transition(self, transition, user=None):
         """
