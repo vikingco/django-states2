@@ -284,7 +284,14 @@ class StateModel(models.Model):
         """
         Get the full description of the (current) state
         """
-        return self.Machine.states[self.value].description
+        return self.Machine.get_state(self.state).description
+
+    @property
+    def is_initial_state(self):
+        """
+        returns True when the current state is the initial state
+        """
+        return self.Machine.get_state(self.state).initial
 
     def test_transition(self, transition, user=None):
         """
