@@ -19,7 +19,9 @@ Usage example:
     - Add a Machine class to your model, for the state machine
 
 
-    >  class PurchaseStateMachine(State):
+    >  from states2.models import StateModel, StateMachine, StateDefinition, StateTransition
+    >
+    >  class PurchaseStateMachine(StateMachine):
     >     log_transitions = True
     >
     >
