@@ -21,6 +21,10 @@ import copy
 import datetime
 
 
+# Global list of all state models (mapping from name -> model class }
+_state_models = { }
+
+
 # =======================[ Helper classes ]=====================
 
 class MachineDefinitionException(Exception):
@@ -115,13 +119,6 @@ class StateTransitionMeta(type):
     def __unicode__(self):
         return '%s: (from %s to %s)' % (unicode(self.description), self.from_state, self.to_state)
 
-    @property
-    def name(self):
-        """
-        The name of the state transition is always given by its classname
-        """
-        return self.__name__
-
 
 class StateMachine(object):
     """ Base class for a state machine definition """
@@ -183,7 +180,9 @@ class StateTransition(object):
 
     def has_permission(cls, instance, user):
         """ Override this method for special checking.  """
-        return True
+        return False
+        # No-one has permission by default -> because this is the only
+        # permission checking for the POST views.
 
     def handler(cls, instance, user):
         """
@@ -191,6 +190,14 @@ class StateTransition(object):
         to be executed during this state transition.
         """
         pass
+
+    @classmethod
+    def get_name(cls):
+        """
+        The name of the state transition is always given by its classname
+        """
+        return cls.__name__
+
 
 
 # =======================[ State ]=====================
@@ -225,6 +232,9 @@ class StateModelBase(ModelBase):
             if f.name == 'state':
                 f.default = state_model.Machine.initial_state
                 f._choices = state_model.get_state_choices()
+
+        # Register state model in global register
+        _state_models[state_model.get_state_model_name()] = state_model
 
         return state_model
 
@@ -271,7 +281,7 @@ class StateModel(models.Model):
         Return state transitions log model.
         """
         if self._state_log_model:
-            return self.all_transitions # Almost similar to: self._log.objects.filter(on=self)
+            return self.all_transitions # Almost similar to: self._state_log_model.objects.filter(on=self)
         else:
             raise Exception('This model does not log state transitions. please enable it by setting log_transitions=True')
 
@@ -310,6 +320,11 @@ class StateModel(models.Model):
             if t.from_state == self.state:
                 yield t
 
+    @classmethod
+    def get_state_model_name(self):
+        return '%s.%s' % (self._meta.app_label, self._meta.object_name)
+
+
     def test_transition(self, transition, user=None):
         """
         Return True when we exect this transition to be executed succesfully.
@@ -324,7 +339,7 @@ class StateModel(models.Model):
             raise TransitionCannotStart(self, transition)
 
         # User should have permissions for this transition
-        if not t.has_permission(self, user):
+        if user and not t.has_permission(self, user):
             raise PermissionDenied(self, transition, user)
         return True
 
@@ -348,7 +363,7 @@ class StateModel(models.Model):
             raise TransitionCannotStart(self, transition)
 
         # User should have permissions for this transition
-        if not t.has_permission(self, user):
+        if user and not t.has_permission(self, user):
             if self._state_log_model: transition_log.make_transition('fail')
             raise PermissionDenied(self, transition, user)
 
@@ -439,12 +454,20 @@ def _create_state_log_model(state_model, name):
             return state_model.Machine.get_transition_from_states(self.from_state, self.to_state)
 
         @property
-        def state_definition(self):
+        def from_state_definition(self):
+            return state_model.Machine.get_state(self.from_state)
+
+        @property
+        def from_state_description(self):
+            return unicode(self.from_state_definition.description)
+
+        @property
+        def to_state_definition(self):
             return state_model.Machine.get_state(self.to_state)
 
         @property
-        def state_description(self):
-            return unicode(self.state_definition.description)
+        def to_state_description(self):
+            return unicode(self.to_state_definition.description)
 
         @property
         def is_public(self):
