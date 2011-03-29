@@ -65,6 +65,12 @@ class StateMachineMeta(type):
         attrs['transitions'] = transitions
         attrs['initial_state'] = initial_state
 
+        # Give all state transitions a 'to_state_description' attribute.
+        # by copying the description from the state definition. (no from_state_description,
+        # because multiple from-states are possible.)
+        for t in transitions.values():
+            t.to_state_description = states[t.to_state].description
+
         return type.__new__(c, name, bases, attrs)
 
     def has_transition(self, transition_name):
