@@ -323,13 +323,23 @@ class StateModel(models.Model):
         """
         for name in self.Machine.transitions:
             t = self.Machine.transitions[name]
-            if t.from_state == self.state:
-                yield t
+            if isinstance(t.from_state, basestring) and self.state == t.from_state:
+                    yield t
+            elif self.state in t.from_state: # from_state is a list/tuple
+                    yield t
 
     @classmethod
     def get_state_model_name(self):
         return '%s.%s' % (self._meta.app_label, self._meta.object_name)
 
+
+    def can_make_transition(self, transition, user=None):
+        """ True when we should be able to make this transition """
+        try:
+            self.test_transition(transition, user)
+            return True
+        except Exception, e:
+            return False
 
     def test_transition(self, transition, user=None):
         """
