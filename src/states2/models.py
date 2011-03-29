@@ -219,10 +219,11 @@ class StateModelBase(ModelBase):
         When this type is created, also create logging model if required.
         """
         # Wrap __unicode__ for state model
-        old_unicode = attrs['__unicode__']
-        def new_unicode(self):
-            return '%s (%s)' % (old_unicode(self), self.Machine.get_state(self.state).description)
-        attrs['__unicode__'] = new_unicode
+        if '__unicode__' in attrs:
+            old_unicode = attrs['__unicode__']
+            def new_unicode(self):
+                return '%s (%s)' % (old_unicode(self), self.Machine.get_state(self.state).description)
+            attrs['__unicode__'] = new_unicode
 
         # Call class constructor of parent
         state_model = ModelBase.__new__(cls, name, bases, attrs)
