@@ -460,7 +460,7 @@ def _create_state_log_model(state_model, name):
         Machine = StateTransitionMachine
 
         class Meta:
-            verbose_name = _('%s state transition log entry') % state_model._meta.verbose_name
+            verbose_name = _('%s transition') % state_model._meta.verbose_name
 
         @property
         def completed(self):
