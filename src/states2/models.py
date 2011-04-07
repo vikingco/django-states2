@@ -186,9 +186,9 @@ class StateTransition(object):
 
     def has_permission(cls, instance, user):
         """ Override this method for special checking.  """
-        return False
-        # No-one has permission by default -> because this is the only
-        # permission checking for the POST views.
+        return user.is_superuser
+        # By default, only superusers are allowed to execute this transition.
+        # Note that this is the only permission checking for the POST views.
 
     def handler(cls, instance, user):
         """
