@@ -23,10 +23,6 @@ import copy
 import datetime
 
 
-# Global list of all state models (mapping from name -> model class }
-_state_models = {}
-
-
 # =======================[ State ]=====================
 class StateModelBase(ModelBase):
     """
@@ -60,9 +56,6 @@ class StateModelBase(ModelBase):
             if f.name == 'state':
                 f.default = state_model.Machine.initial_state
                 f._choices = state_model.get_state_choices()
-
-        # Register state model in global register
-        _state_models[state_model.get_state_model_name()] = state_model
 
         return state_model
 
