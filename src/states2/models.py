@@ -26,12 +26,6 @@ _state_models = {}
 
 
 # =======================[ Helper classes ]=====================
-
-class MachineDefinitionException(Exception):
-    def __init__(self, machine, description):
-        Exception.__init__(self, 'Error in state machine definition: ' + description)
-
-
 class StateMachineMeta(type):
     def __new__(c, name, bases, attrs):
         """

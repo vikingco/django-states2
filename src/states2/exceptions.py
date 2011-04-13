@@ -28,3 +28,8 @@ class TransitionCannotStart(TransitionException):
     def __init__(self, instance, transition):
         Exception.__init__(self, "Transition '%s' on %s cannot start in the state '%s'" %
                     (transition, instance.__class__.__name__, instance.state))
+
+
+class MachineDefinitionException(States2Exception):
+    def __init__(self, machine, description):
+        Exception.__init__(self, 'Error in state machine definition: ' + description)
