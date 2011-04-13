@@ -18,6 +18,7 @@ from functools import wraps
 
 from states2.machine import StateMachine, StateDefinition, StateTransition
 from states2.exceptions import *
+from states2.fields import StateField
 
 import copy
 import datetime
@@ -43,28 +44,14 @@ class StateModelBase(ModelBase):
             attrs['__unicode__'] = new_unicode
 
         # Call class constructor of parent
-        state_model = ModelBase.__new__(cls, name, bases, attrs)
-
-        # If we need logging, create logging model
-        if state_model.Machine.log_transitions:
-            state_model._state_log_model = _create_state_log_model(state_model, name)
-        else:
-            state_model._state_log_model = None
-
-        # Link default value for the State Machine
-        for f in state_model._meta.fields:
-            if f.name == 'state':
-                f.default = state_model.Machine.initial_state
-                f._choices = state_model.get_state_choices()
-
-        return state_model
+        return ModelBase.__new__(cls, name, bases, attrs)
 
 
 class StateModel(models.Model):
     """
     Every model which needs state should inherit this abstract model.
     """
-    state = models.CharField(max_length=64, default='0', verbose_name=_('state id'))
+    state = StateField(max_length=64, default='0', verbose_name=_('state id'))
 
     __metaclass__ = StateModelBase
 
