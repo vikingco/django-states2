@@ -2,7 +2,9 @@
 Django States (v2)
 ===========================================================
 
-Author: Jonathan Slenders, City Live nv
+Authors:
+- Jonathan Slenders, City Live nv
+- Gert van Gool, City Live nv
 
 Description
 -----------

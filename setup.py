@@ -9,7 +9,7 @@ setup(
     license='BSD',
     description="State machine for django models",
     long_description=open('README.rst', 'r').read(),
-    author='Jonathan Slenders, City Live nv',
+    author='Jonathan Slenders, Gert van Gool, City Live nv',
     packages=find_packages('.'),
     #package_dir={'': 'templates/*'},
     classifiers=[
