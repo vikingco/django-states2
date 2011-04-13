@@ -25,4 +25,3 @@ def make_state_transition(request):
 
     else:
         return HttpResponseForbidden()
-

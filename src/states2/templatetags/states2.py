@@ -1,4 +1,3 @@
-
 from django.template import Node, NodeList, Variable
 from django.template import TemplateSyntaxError, VariableDoesNotExist
 from django.template import Library
@@ -43,4 +42,3 @@ def can_make_transition(parser, token):
 
     # Return meta node
     return CanMakeTransitionNode(args[1], args[2], nodelist)
-

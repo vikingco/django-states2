@@ -22,7 +22,7 @@ import datetime
 
 
 # Global list of all state models (mapping from name -> model class }
-_state_models = { }
+_state_models = {}
 
 
 # =======================[ Helper classes ]=====================
@@ -38,8 +38,8 @@ class StateMachineMeta(type):
         Validate state machine, and make `states`, `transitions` and
         `initial_state` attributes available.
         """
-        states = { }
-        transitions = { }
+        states = {}
+        transitions = {}
         initial_state = None
         for a in attrs:
             # All definitions derived from StateDefinition
@@ -139,6 +139,7 @@ class StateMachine(object):
         Create a list of actions for use in the Django Admin.
         """
         actions = []
+
         def create_action(transition_name):
             def action(modeladmin, request, queryset):
                 # Dry run first
@@ -164,7 +165,6 @@ class StateMachine(object):
             actions.append(create_action(t))
 
         return actions
-
 
 
 class StateDefinition(object):
@@ -205,9 +205,7 @@ class StateTransition(object):
         return cls.__name__
 
 
-
 # =======================[ State ]=====================
-
 class StateModelBase(ModelBase):
     """
     Metaclass for State models.
@@ -221,6 +219,7 @@ class StateModelBase(ModelBase):
         # Wrap __unicode__ for state model
         if '__unicode__' in attrs:
             old_unicode = attrs['__unicode__']
+
             def new_unicode(self):
                 return '%s (%s)' % (old_unicode(self), self.Machine.get_state(self.state).description)
             attrs['__unicode__'] = new_unicode
@@ -246,7 +245,6 @@ class StateModelBase(ModelBase):
         return state_model
 
 
-
 class StateModel(models.Model):
     """
     Every model which needs state should inherit this abstract model.
@@ -265,13 +263,13 @@ class StateModel(models.Model):
 
         # Definition of states (mapping from state_slug to description)
         class initial(StateDefinition):
-            initial=True
+            initial = True
             description = _('Initial state')
 
         # Possible transitions, and their names
         class dummy(StateTransition):
-            from_state='initial'
-            to_state='initial'
+            from_state = 'initial'
+            to_state = 'initial'
             description = _('Make dummy state transition')
 
     class Meta:
@@ -288,7 +286,7 @@ class StateModel(models.Model):
         Return state transitions log model.
         """
         if self._state_log_model:
-            return self.all_transitions # Almost similar to: self._state_log_model.objects.filter(on=self)
+            return self.all_transitions  # Almost similar to: self._state_log_model.objects.filter(on=self)
         else:
             raise Exception('This model does not log state transitions. please enable it by setting log_transitions=True')
 
@@ -326,13 +324,12 @@ class StateModel(models.Model):
             t = self.Machine.transitions[name]
             if isinstance(t.from_state, basestring) and self.state == t.from_state:
                     yield t
-            elif self.state in t.from_state: # from_state is a list/tuple
+            elif self.state in t.from_state:  # from_state is a list/tuple
                     yield t
 
     @classmethod
     def get_state_model_name(self):
         return '%s.%s' % (self._meta.app_label, self._meta.object_name)
-
 
     def can_make_transition(self, transition, user=None):
         """ True when we should be able to make this transition """
@@ -376,29 +373,34 @@ class StateModel(models.Model):
 
         # Transition should start from here
         if self.state not in t.from_state:
-            if self._state_log_model: transition_log.make_transition('fail')
+            if self._state_log_model:
+                transition_log.make_transition('fail')
             raise TransitionCannotStart(self, transition)
 
         # User should have permissions for this transition
         if user and not t.has_permission(self, user):
-            if self._state_log_model: transition_log.make_transition('fail')
+            if self._state_log_model:
+                transition_log.make_transition('fail')
             raise PermissionDenied(self, transition, user)
 
         # Execute
-        if self._state_log_model: transition_log.make_transition('start')
+        if self._state_log_model:
+            transition_log.make_transition('start')
 
         try:
             t.handler(self, user)
             self.state = t.to_state
             self.save()
-            if self._state_log_model: transition_log.make_transition('complete')
+            if self._state_log_model:
+                transition_log.make_transition('complete')
         except Exception, e:
-            if self._state_log_model: transition_log.make_transition('fail')
+            if self._state_log_model:
+                transition_log.make_transition('fail')
             raise e
 
     @classmethod
     def get_state_choices(cls):
-        return [ (k, cls.Machine.states[k].description) for k in cls.Machine.states.keys() ]
+        return [(k, cls.Machine.states[k].description) for k in cls.Machine.states.keys()]
 
 
 def _create_state_log_model(state_model, name):
@@ -413,10 +415,13 @@ def _create_state_log_model(state_model, name):
         class transition_initiated(StateDefinition):
             description = _('State transition initiated')
             initial = True
+
         class transition_started(StateDefinition):
             description = _('State transition initiated')
+
         class transition_failed(StateDefinition):
             description = _('State transition failed')
+
         class transition_completed(StateDefinition):
             description = _('State transition completed')
 
@@ -441,7 +446,7 @@ def _create_state_log_model(state_model, name):
         and was defined in another model.
         """
         def __new__(c, name, bases, attrs):
-            attrs[ '__module__'] = state_model.__module__
+            attrs['__module__'] = state_model.__module__
             return StateModelBase.__new__(c, '%s_StateTransition' % state_model.__name__, bases, attrs)
 
     class _StateTransition(StateModel):
@@ -455,7 +460,7 @@ def _create_state_log_model(state_model, name):
         user = models.ForeignKey(User, blank=True, null=True)
 
         start_time = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=_('transition started at'))
-        on    = models.ForeignKey(state_model, related_name='all_transitions')
+        on = models.ForeignKey(state_model, related_name='all_transitions')
 
         Machine = StateTransitionMachine
 
@@ -509,4 +514,3 @@ def _create_state_log_model(state_model, name):
     # which will register it somewhere in a global variable.
 
     return _StateTransition
-

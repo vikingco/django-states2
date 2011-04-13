@@ -1,4 +1,3 @@
-
 class TransitionException(Exception):
     pass
 
@@ -7,6 +6,7 @@ class TransitionOnUnsavedObject(TransitionException):
     def __init__(self, instance):
         Exception.__init__(self, "Cannot run state transition on unsaved object '%s'. "
                 "Please call save() on this object first." % instance)
+
 
 class PermissionDenied(TransitionException):
     def __init__(self, instance, transition, user):
