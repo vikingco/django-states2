@@ -222,7 +222,7 @@ class StateModel(models.Model):
 
     @classmethod
     def get_state_choices(cls):
-        return [(k, cls.Machine.states[k].description) for k in cls.Machine.states.keys()]
+        return cls.Machine.get_state_choices()
 
 
 def _create_state_log_model(state_model, name):

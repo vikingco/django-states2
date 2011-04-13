@@ -134,6 +134,10 @@ class StateMachine(object):
 
         return actions
 
+    def get_state_choices(self):
+        'Get all possible states'
+        return [(k, self.states[k].description) for k in self.states.keys()]
+
 
 class StateDefinition(object):
     """ Base class for a state definition """
