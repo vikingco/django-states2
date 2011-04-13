@@ -1,4 +1,8 @@
-class TransitionException(Exception):
+class States2Exception(Exception):
+    pass
+
+
+class TransitionException(States2Exception):
     pass
 
 
