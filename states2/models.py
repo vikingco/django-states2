@@ -84,24 +84,11 @@ class StateModel(models.Model):
 
     @property
     def state_transitions(self):
-        """
-        Return state transitions log model.
-        """
-        if self._state_log_model:
-            return self.all_transitions  # Almost similar to: self._state_log_model.objects.filter(on=self)
-        else:
-            raise Exception('This model does not log state transitions. please enable it by setting log_transitions=True')
+        return self.get_state_transitions()
 
     @property
     def public_transitions(self):
-        """
-        Return the transitions which are meant to be seen by the customer. (The
-        admin on the other hand should be able to see everything.)
-        """
-        if self._state_log_model:
-            return filter(lambda t: t.is_public and t.completed, self.state_transitions.all())
-        else:
-            return []
+        return self.get_public_state_transitions()
 
     @property
     def state_description(self):

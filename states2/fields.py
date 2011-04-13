@@ -4,6 +4,7 @@ from django.db import models
 from django.utils.functional import curry
 
 from states2.models import _create_state_log_model
+from states2.model_methods import *
 
 
 class StateField(models.CharField):
@@ -27,6 +28,12 @@ class StateField(models.CharField):
             cls._state_log_model = _create_state_log_model(cls, cls.__name__)
         else:
             cls._state_log_model = None
+
+        # adding extra methods
+        setattr(cls, 'get_%s_transitions' % name,
+            curry(get_STATE_transitions, field=name))
+        setattr(cls, 'get_public_%s_transitions' % name,
+            curry(get_public_STATE_transitions, field=name)
 
 try:
     from south.modelsinspector import add_introspection_rules
