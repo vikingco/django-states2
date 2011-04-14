@@ -1,3 +1,5 @@
+from states2.exceptions import *
+
 def get_STATE_transitions(self, field='state'):
     """
     Return state transitions log model.
@@ -21,3 +23,92 @@ def get_public_STATE_transitions(self, field='state'):
     else:
         return []
 
+
+def get_STATE_info(self, field='state', machine=None):
+    '''
+    Get the state definition from the machine
+    '''
+    if machine is None:
+        return None
+    state = getattr(self, field)
+    state_info = machine.get_state(state)
+    def possible_transitions(si_self):
+        '''
+        Return list of transitions which can be made from the current state.
+        '''
+        for name in machine.transitions:
+            t = machine.transitions[name]
+            if isinstance(t.from_state, basestring) and state == t.from_state:
+                yield t
+            elif state in t.from_state:  # from_state is a list/tuple
+                yield t
+
+    setattr(state_info, possible_transitions)
+
+    def test_transition(si_self, transition, user=None):
+        """
+        Check whether we could execute this transition.
+
+        Returns ``True`` when we expect this transition to be executed succesfully.
+        Raises an ``Exception`` when this transition is impossible or not allowed.
+        """
+        # Transition name should be known
+        if not machine.has_transition(transition):
+            raise UnknownTransition(self, transition)
+
+        t = machine.get_transitions(transition)
+
+        if state not in t.from_state:
+            raise TransitionCannotStart(self, transition)
+
+        # User should have permissions for this transition
+        if user and not t.has_permission(self, user):
+            raise PermissionDenied(self, transition, user)
+        return True
+
+    setattr(state_info, test_transition)
+
+    def do_transition(si_self, transition, user=None):
+        '''
+        Execute state transition
+        Provide ``user`` to do
+        '''
+        # Transition name should be known
+        if not machine.has_transition(transition):
+            raise UnknownTransition(self, transition)
+        t = machine.get_transitions(transition)
+
+        # Start transition log
+        if self._state_log_model:
+            transition_log = self._state_log_model.objects.create(on=self, from_state=state, to_state=t.to_state, user=user)
+
+        # Transition should start from here
+        if state not in t.from_state:
+            if self._state_log_model:
+                transition_log.make_transition('fail')
+            raise TransitionCannotStart(self, transition)
+
+        # User should have permissions for this transition
+        if user and not t.has_permission(self, user):
+            if self._state_log_model:
+                transition_log.make_transition('fail')
+            raise PermissionDenied(self, transition, user)
+
+        # Execute
+        if self._state_log_model:
+            transition_log.make_transition('start')
+
+        try:
+            t.handler(self, user)
+            self.state = t.to_state
+            self.save()
+            if self._state_log_model:
+                transition_log.make_transition('complete')
+        except Exception, e:
+            if self._state_log_model:
+                transition_log.make_transition('fail')
+            raise e
+
+    setattr(state_info, do_transition)
+
+    return state_info

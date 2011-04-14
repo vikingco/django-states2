@@ -34,6 +34,8 @@ class StateField(models.CharField):
             curry(get_STATE_transitions, field=name))
         setattr(cls, 'get_public_%s_transitions' % name,
             curry(get_public_STATE_transitions, field=name)
+        setattr(cls, 'get_%s_info' % name,
+            curry(get_STATE_info, field=name, machine=self._machine)
 
 try:
     from south.modelsinspector import add_introspection_rules

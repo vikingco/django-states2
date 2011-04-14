@@ -95,26 +95,21 @@ class StateModel(models.Model):
         """
         Get the full description of the (current) state
         """
-        return unicode(self.Machine.get_state(self.state).description)
+        return unicode(self.get_state_info().description)
 
     @property
     def is_initial_state(self):
         """
         returns True when the current state is the initial state
         """
-        return bool(self.Machine.get_state(self.state).initial)
+        return bool(self.get_state_info().initial)
 
     @property
     def possible_transitions(self):
         """
         Return list of transitions which can be made from the current state.
         """
-        for name in self.Machine.transitions:
-            t = self.Machine.transitions[name]
-            if isinstance(t.from_state, basestring) and self.state == t.from_state:
-                    yield t
-            elif self.state in t.from_state:  # from_state is a list/tuple
-                    yield t
+        return self.get_state_info().possible_transitions()
 
     @classmethod
     def get_state_model_name(self):
@@ -123,9 +118,8 @@ class StateModel(models.Model):
     def can_make_transition(self, transition, user=None):
         """ True when we should be able to make this transition """
         try:
-            self.test_transition(transition, user)
-            return True
-        except Exception, e:
+            return self.test_transition(transition, user)
+        except States2Exception:
             return False
 
     def test_transition(self, transition, user=None):
@@ -133,59 +127,14 @@ class StateModel(models.Model):
         Return True when we exect this transition to be executed succesfully.
         Raise Exception when this transition is impossible.
         """
-        # Transition name should be known
-        if not self.Machine.has_transition(transition):
-            raise UnknownTransition(self, transition)
-        t = self.Machine.get_transitions(transition)
-
-        if self.state not in t.from_state:
-            raise TransitionCannotStart(self, transition)
-
-        # User should have permissions for this transition
-        if user and not t.has_permission(self, user):
-            raise PermissionDenied(self, transition, user)
-        return True
+        return self.get_state_info().test_transition(transition, user=user)
 
     def make_transition(self, transition, user=None):
         """
         Execute state transition
         user: the user executing the transition
         """
-        # Transition name should be known
-        if not self.Machine.has_transition(transition):
-            raise UnknownTransition(self, transition)
-        t = self.Machine.get_transitions(transition)
-
-        # Start transition log
-        if self._state_log_model:
-            transition_log = self._state_log_model.objects.create(on=self, from_state=self.state, to_state=t.to_state, user=user)
-
-        # Transition should start from here
-        if self.state not in t.from_state:
-            if self._state_log_model:
-                transition_log.make_transition('fail')
-            raise TransitionCannotStart(self, transition)
-
-        # User should have permissions for this transition
-        if user and not t.has_permission(self, user):
-            if self._state_log_model:
-                transition_log.make_transition('fail')
-            raise PermissionDenied(self, transition, user)
-
-        # Execute
-        if self._state_log_model:
-            transition_log.make_transition('start')
-
-        try:
-            t.handler(self, user)
-            self.state = t.to_state
-            self.save()
-            if self._state_log_model:
-                transition_log.make_transition('complete')
-        except Exception, e:
-            if self._state_log_model:
-                transition_log.make_transition('fail')
-            raise e
+        return self.get_state_info().do_transition(transition, user=user)
 
     @classmethod
     def get_state_choices(cls):
