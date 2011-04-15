@@ -25,7 +25,7 @@ class StateField(models.CharField):
 
         # do we need logging?
         if self._machine.log_transitions:
-            cls._state_log_model = _create_state_log_model(cls, cls.__name__)
+            cls._state_log_model = _create_state_log_model(cls, name)
         else:
             cls._state_log_model = None
 

@@ -141,7 +141,7 @@ class StateModel(models.Model):
         return cls.Machine.get_state_choices()
 
 
-def _create_state_log_model(state_model, name):
+def _create_state_log_model(state_model, field_name):
     """
     Create a new model for logging the state transitions.
     """
