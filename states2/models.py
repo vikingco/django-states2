@@ -185,7 +185,10 @@ def _create_state_log_model(state_model, field_name):
         """
         def __new__(c, name, bases, attrs):
             attrs['__module__'] = state_model.__module__
-            return StateModelBase.__new__(c, '%s_StateTransition' % state_model.__name__, bases, attrs)
+            values = {'model_name': state_model.__name__,
+                      'field_name': field_name.capitalize()}
+            class_name = conf.LOG_MODEL_NAME % values
+            return StateModelBase.__new__(c, class_name, bases, attrs)
 
     class _StateTransition(StateModel):
         """
