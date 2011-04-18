@@ -35,6 +35,11 @@ class StateModelBase(ModelBase):
         Instantiation of the State type.
         When this type is created, also create logging model if required.
         """
+        if name != 'StateModel':
+            attrs['states'] = StateField(max_length=64, default='0',
+                                         verbose_name=_('state id'),
+                                         machine=attrs['Machine'])
+
         # Wrap __unicode__ for state model
         if '__unicode__' in attrs:
             old_unicode = attrs['__unicode__']
@@ -51,8 +56,6 @@ class StateModel(models.Model):
     """
     Every model which needs state should inherit this abstract model.
     """
-    state = StateField(max_length=64, default='0', verbose_name=_('state id'))
-
     __metaclass__ = StateModelBase
 
     class Machine(StateMachine):
