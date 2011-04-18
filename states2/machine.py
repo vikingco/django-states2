@@ -1,5 +1,6 @@
 __all__ = ('StateMachine', 'StateDefinition', 'StateTransition')
 
+
 class StateMachineMeta(type):
     def __new__(c, name, bases, attrs):
         """

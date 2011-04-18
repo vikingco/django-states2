@@ -1,5 +1,6 @@
 from states2.exceptions import *
 
+
 def get_STATE_transitions(self, field='state'):
     """
     Return state transitions log model.
@@ -32,6 +33,7 @@ def get_STATE_info(self, field='state', machine=None):
         return None
     state = getattr(self, field)
     state_info = machine.get_state(state)
+
     def possible_transitions(si_self):
         '''
         Return list of transitions which can be made from the current state.
