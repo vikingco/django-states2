@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models.base import ModelBase
 from django.utils.translation import ugettext_lazy as _
 
+from states2 import conf
 from states2.fields import StateField
 from states2.machine import StateMachine, StateDefinition, StateTransition
 
