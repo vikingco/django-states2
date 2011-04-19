@@ -36,9 +36,9 @@ class StateModelBase(ModelBase):
         When this type is created, also create logging model if required.
         """
         if name != 'StateModel' and 'Machine' in attrs:
-            attrs['states'] = StateField(max_length=64, default='0',
-                                         verbose_name=_('state id'),
-                                         machine=attrs['Machine'])
+            attrs['state'] = StateField(max_length=64, default='0',
+                                        verbose_name=_('state id'),
+                                        machine=attrs['Machine'])
 
         # Wrap __unicode__ for state model
         if '__unicode__' in attrs:
