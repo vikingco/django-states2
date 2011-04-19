@@ -68,6 +68,8 @@ def _create_state_log_model(state_model, field_name):
         """
         State transitions log entry.
         """
+        __metaclass__ = _StateTransitionMeta
+
         state = StateField(max_length=64, default='0', verbose_name=_('state id'))
 
         from_state = models.CharField(max_length=32, choices=state_model.get_state_choices())
