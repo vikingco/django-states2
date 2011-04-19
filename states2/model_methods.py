@@ -109,7 +109,7 @@ def get_STATE_info(self, field='state', machine=None):
 
             try:
                 t.handler(self, user)
-                self.state = t.to_state
+                setattr(self, field, t.to_state)
                 self.save()
                 if self._state_log_model:
                     transition_log.make_transition('complete')
