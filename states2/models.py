@@ -35,7 +35,7 @@ class StateModelBase(ModelBase):
         Instantiation of the State type.
         When this type is created, also create logging model if required.
         """
-        if name != 'StateModel':
+        if name != 'StateModel' and 'Machine' in attrs:
             attrs['states'] = StateField(max_length=64, default='0',
                                          verbose_name=_('state id'),
                                          machine=attrs['Machine'])
