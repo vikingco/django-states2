@@ -19,7 +19,7 @@ def get_public_STATE_transitions(self, field='state'):
     admin on the other hand should be able to see everything.)
     """
     if getattr(self, '_%s_log_model' % field, None):
-        transitions = getattr(self, 'get_%s_transitions' % attr_name)
+        transitions = getattr(self, 'get_%s_transitions' % field)
         return filter(lambda t: t.is_public and t.completed, transitions())
     else:
         return []
