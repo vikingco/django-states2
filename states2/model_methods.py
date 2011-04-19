@@ -5,8 +5,8 @@ def get_STATE_transitions(self, field='state'):
     """
     Return state transitions log model.
     """
-    if self._state_log_model:
-        # Similar to: self._state_log_model.objects.filter(on=self)
+    if getattr(self, '_%s_log_model' % field, None):
+        # Similar to: _state_log_model.objects.filter(on=self)
         return self.all_transitions.all()
     else:
         raise Exception('This model does not log state transitions. '
@@ -18,7 +18,7 @@ def get_public_STATE_transitions(self, field='state'):
     Return the transitions which are meant to be seen by the customer. (The
     admin on the other hand should be able to see everything.)
     """
-    if self._state_log_model:
+    if getattr(self, '_%s_log_model' % field, None):
         transitions = getattr(self, 'get_%s_transitions' % attr_name)
         return filter(lambda t: t.is_public and t.completed, transitions())
     else:
@@ -94,34 +94,36 @@ def get_STATE_info(self, field='state', machine=None):
                 raise UnknownTransition(self, transition)
             t = machine.get_transitions(transition)
 
+            _state_log_model = getattr(self, '_%s_log_model' % field, None)
+
             # Start transition log
-            if self._state_log_model:
-                transition_log = self._state_log_model.objects.create(on=self, from_state=getattr(self, field), to_state=t.to_state, user=user)
+            if _state_log_model:
+                transition_log = _state_log_model.objects.create(on=self, from_state=getattr(self, field), to_state=t.to_state, user=user)
 
             # Transition should start from here
             if getattr(self, field) not in t.from_state:
-                if self._state_log_model:
+                if _state_log_model:
                     transition_log.make_transition('fail')
                 raise TransitionCannotStart(self, transition)
 
             # User should have permissions for this transition
             if user and not t.has_permission(self, user):
-                if self._state_log_model:
+                if _state_log_model:
                     transition_log.make_transition('fail')
                 raise PermissionDenied(self, transition, user)
 
             # Execute
-            if self._state_log_model:
+            if _state_log_model:
                 transition_log.make_transition('start')
 
             try:
                 t.handler(self, user)
                 setattr(self, field, t.to_state)
                 self.save()
-                if self._state_log_model:
+                if _state_log_model:
                     transition_log.make_transition('complete')
             except Exception, e:
-                if self._state_log_model:
+                if _state_log_model:
                     transition_log.make_transition('fail')
                 raise e
 
