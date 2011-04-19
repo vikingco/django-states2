@@ -25,6 +25,13 @@ def get_public_STATE_transitions(self, field='state'):
         return []
 
 
+def get_STATE_machine(self, field='state', machine=None):
+    '''
+    Get the machine
+    '''
+    return machine
+
+
 def get_STATE_info(self, field='state', machine=None):
     '''
     Get the state definition from the machine
