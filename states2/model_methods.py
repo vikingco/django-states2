@@ -49,9 +49,9 @@ def get_STATE_info(self, field='state', machine=None):
             '''
             for name in machine.transitions:
                 t = machine.transitions[name]
-                if isinstance(t.from_state, basestring) and state == t.from_state:
+                if isinstance(t.from_state, basestring) and getattr(self, field) == t.from_state:
                     yield t
-                elif state in t.from_state:  # from_state is a list/tuple
+                elif getattr(self, field) in t.from_state:  # from_state is a list/tuple
                     yield t
 
         def test_transition(si_self, transition, user=None):
@@ -69,7 +69,7 @@ def get_STATE_info(self, field='state', machine=None):
 
             t = machine.get_transitions(transition)
 
-            if state not in t.from_state:
+            if getattr(self, field) not in t.from_state:
                 raise TransitionCannotStart(self, transition)
 
             # User should have permissions for this transition
@@ -89,10 +89,10 @@ def get_STATE_info(self, field='state', machine=None):
 
             # Start transition log
             if self._state_log_model:
-                transition_log = self._state_log_model.objects.create(on=self, from_state=state, to_state=t.to_state, user=user)
+                transition_log = self._state_log_model.objects.create(on=self, from_state=getattr(self, field), to_state=t.to_state, user=user)
 
             # Transition should start from here
-            if state not in t.from_state:
+            if getattr(self, field) not in t.from_state:
                 if self._state_log_model:
                     transition_log.make_transition('fail')
                 raise TransitionCannotStart(self, transition)
