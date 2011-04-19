@@ -64,6 +64,7 @@ def _create_state_log_model(state_model, field_name):
             class_name = conf.LOG_MODEL_NAME % values
             return ModelBase.__new__(c, class_name, bases, attrs)
 
+    get_state_choices = getattr(state_model, 'get_%s_choices' % field_name)
     class _StateTransition(models.Model):
         """
         State transitions log entry.
@@ -72,8 +73,8 @@ def _create_state_log_model(state_model, field_name):
 
         state = StateField(max_length=64, default='0', verbose_name=_('state id'))
 
-        from_state = models.CharField(max_length=32, choices=state_model.get_state_choices())
-        to_state = models.CharField(max_length=32, choices=state_model.get_state_choices())
+        from_state = models.CharField(max_length=32, choices=get_state_choices())
+        to_state = models.CharField(max_length=32, choices=get_state_choices())
         user = models.ForeignKey(User, blank=True, null=True)
 
         start_time = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=_('transition started at'))
