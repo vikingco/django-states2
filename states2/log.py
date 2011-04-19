@@ -8,7 +8,7 @@ from states2.fields import StateField
 from states2.machine import StateMachine, StateDefinition, StateTransition
 
 
-def _create_state_log_model(state_model, field_name):
+def _create_state_log_model(state_model, field_name, machine):
     """
     Create a new model for logging the state transitions.
     """
@@ -65,7 +65,7 @@ def _create_state_log_model(state_model, field_name):
             class_name = conf.LOG_MODEL_NAME % values
             return ModelBase.__new__(c, class_name, bases, attrs)
 
-    get_state_choices = getattr(state_model, 'get_%s_choices' % field_name)
+    get_state_choices = machine.get_state_choices
     class _StateTransition(models.Model):
         """
         State transitions log entry.
