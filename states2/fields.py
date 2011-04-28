@@ -8,16 +8,13 @@ from states2.model_methods import *
 
 class StateField(models.CharField):
     def __init__(self, **kwargs):
-        if 'machine' in kwargs:
-            self._machine = kwargs.pop('machine')
+        self._machine = kwargs.pop('machine')
         kwargs.setdefault('max_length', 100)
         kwargs['choices'] = None
         super(StateField, self).__init__(**kwargs)
 
     def contribute_to_class(self, cls, name):
         super(StateField, self).contribute_to_class(cls, name)
-        if not hasattr(self, '_machine'):
-            self._machine = cls.Machine
 
         self._choices = self._machine.get_state_choices()
         self.default = self._machine.initial_state

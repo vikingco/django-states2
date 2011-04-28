@@ -72,7 +72,7 @@ def _create_state_log_model(state_model, field_name, machine):
         """
         __metaclass__ = _StateTransitionMeta
 
-        state = StateField(max_length=64, default='0', verbose_name=_('state id'))
+        state = StateField(max_length=64, default='0', verbose_name=_('state id'), machine=StateTransitionMachine)
 
         from_state = models.CharField(max_length=32, choices=get_state_choices())
         to_state = models.CharField(max_length=32, choices=get_state_choices())
@@ -80,8 +80,6 @@ def _create_state_log_model(state_model, field_name, machine):
 
         start_time = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=_('transition started at'))
         on = models.ForeignKey(state_model, related_name='all_transitions')
-
-        Machine = StateTransitionMachine
 
         class Meta:
             verbose_name = _('%s transition') % state_model._meta.verbose_name
