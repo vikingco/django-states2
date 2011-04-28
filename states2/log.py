@@ -90,11 +90,11 @@ def _create_state_log_model(state_model, field_name, machine):
 
         @property
         def state_transition_definition(self):
-            return state_model.Machine.get_transition_from_states(self.from_state, self.to_state)
+            return machine.get_transition_from_states(self.from_state, self.to_state)
 
         @property
         def from_state_definition(self):
-            return state_model.Machine.get_state(self.from_state)
+            return machine.get_state(self.from_state)
 
         @property
         def from_state_description(self):
@@ -102,7 +102,7 @@ def _create_state_log_model(state_model, field_name, machine):
 
         @property
         def to_state_definition(self):
-            return state_model.Machine.get_state(self.to_state)
+            return machine.get_state(self.to_state)
 
         @property
         def to_state_description(self):
