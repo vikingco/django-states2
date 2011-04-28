@@ -126,11 +126,12 @@ def get_STATE_info(self, field='state', machine=None):
                 t.handler(self, user)
                 setattr(self, field, t.to_state)
                 self.save()
-                if _state_log_model:
-                    transition_log.make_transition('complete')
             except Exception, e:
                 if _state_log_model:
                     transition_log.make_transition('fail')
                 raise e
+            else:
+                if _state_log_model:
+                    transition_log.make_transition('complete')
 
     return state_info()
