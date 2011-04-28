@@ -2,9 +2,9 @@ from states2.exceptions import *
 
 
 def get_STATE_transitions(self, field='state'):
-    """
+    '''
     Return state transitions log model.
-    """
+    '''
     if getattr(self, '_%s_log_model' % field, None):
         # Similar to: _state_log_model.objects.filter(on=self)
         return self.all_transitions.all()
@@ -14,10 +14,10 @@ def get_STATE_transitions(self, field='state'):
 
 
 def get_public_STATE_transitions(self, field='state'):
-    """
+    '''
     Return the transitions which are meant to be seen by the customer. (The
     admin on the other hand should be able to see everything.)
-    """
+    '''
     if getattr(self, '_%s_log_model' % field, None):
         transitions = getattr(self, 'get_%s_transitions' % field)
         return filter(lambda t: t.is_public and t.completed, transitions())
@@ -42,10 +42,16 @@ def get_STATE_info(self, field='state', machine=None):
     class state_info(object):
         @property
         def name(si_self):
+            '''
+            The name of the current state
+            '''
             return getattr(self, field)
 
         @property
         def description(si_self):
+            '''
+            The description of the current state
+            '''
             si = machine.get_state(getattr(self, field))
             return si.description
 
@@ -62,14 +68,14 @@ def get_STATE_info(self, field='state', machine=None):
                     yield t
 
         def test_transition(si_self, transition, user=None):
-            """
+            '''
             Check whether we could execute this transition.
 
             Returns ``True`` when we expect this transition to be executed
             succesfully.
             Raises an ``Exception`` when this transition is impossible or not
             allowed.
-            """
+            '''
             # Transition name should be known
             if not machine.has_transition(transition):
                 raise UnknownTransition(self, transition)
@@ -86,8 +92,8 @@ def get_STATE_info(self, field='state', machine=None):
 
         def make_transition(si_self, transition, user=None):
             '''
-            Execute state transition
-            Provide ``user`` to do
+            Execute state transition.
+            Provide ``user`` to do permission checking
             '''
             # Transition name should be known
             if not machine.has_transition(transition):
