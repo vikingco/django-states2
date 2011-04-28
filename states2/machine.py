@@ -84,6 +84,10 @@ class StateTransitionMeta(type):
             if not 'description' in attrs:
                 raise Exception('Please give a description to this state transition')
 
+        if 'handler' in attrs and len(attrs['handler'].func_code.co_varnames) < 3:
+            raise Exception('StateTransition handler needs at least three arguments')
+
+
         # Turn `has_permission` and `handler` into classmethods
         for m in ('has_permission', 'handler'):
             if m in attrs:
@@ -177,3 +181,7 @@ class StateTransition(object):
         The name of the state transition is always given by its classname
         """
         return cls.__name__
+
+    @property
+    def handler_kwargs(self):
+        return self.handler.func_code.co_names[3:]

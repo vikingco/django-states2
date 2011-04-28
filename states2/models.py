@@ -132,12 +132,12 @@ class StateModel(models.Model):
         """
         return self.get_state_info().test_transition(transition, user=user)
 
-    def make_transition(self, transition, user=None):
+    def make_transition(self, transition, user=None, **kwargs):
         """
         Execute state transition
         user: the user executing the transition
         """
-        return self.get_state_info().make_transition(transition, user=user)
+        return self.get_state_info().make_transition(transition, user=user, **kwargs)
 
     @classmethod
     def get_state_choices(cls):

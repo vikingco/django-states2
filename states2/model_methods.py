@@ -90,7 +90,7 @@ def get_STATE_info(self, field='state', machine=None):
                 raise PermissionDenied(self, transition, user)
             return True
 
-        def make_transition(si_self, transition, user=None):
+        def make_transition(si_self, transition, user=None, **kwargs):
             '''
             Execute state transition.
             Provide ``user`` to do permission checking
@@ -123,7 +123,7 @@ def get_STATE_info(self, field='state', machine=None):
                 transition_log.make_transition('start')
 
             try:
-                t.handler(self, user)
+                t.handler(self, user, **kwargs)
                 setattr(self, field, t.to_state)
                 self.save()
             except Exception, e:
