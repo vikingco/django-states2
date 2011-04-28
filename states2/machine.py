@@ -1,5 +1,6 @@
 __all__ = ('StateMachine', 'StateDefinition', 'StateTransition')
 
+
 class StateMachineMeta(type):
     def __new__(c, name, bases, attrs):
         """
@@ -133,6 +134,11 @@ class StateMachine(object):
             actions.append(create_action(t))
 
         return actions
+
+    @classmethod
+    def get_state_choices(cls):
+        'Get all possible states'
+        return [(k, cls.states[k].description) for k in cls.states.keys()]
 
 
 class StateDefinition(object):
