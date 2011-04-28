@@ -110,6 +110,13 @@ def _create_state_log_model(state_model, field_name, machine):
         def to_state_description(self):
             return unicode(self.to_state_definition.description)
 
+        def make_transition(self, transition, user=None):
+            '''
+            Execute state transition.
+            Provide ``user`` to do permission checking.
+            '''
+            return self.get_state_info().make_transition(transition, user=user)
+
         @property
         def is_public(self):
             """
