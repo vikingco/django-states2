@@ -84,7 +84,7 @@ def get_STATE_info(self, field='state', machine=None):
                 raise PermissionDenied(self, transition, user)
             return True
 
-        def do_transition(si_self, transition, user=None):
+        def make_transition(si_self, transition, user=None):
             '''
             Execute state transition
             Provide ``user`` to do

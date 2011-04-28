@@ -137,7 +137,7 @@ class StateModel(models.Model):
         Execute state transition
         user: the user executing the transition
         """
-        return self.get_state_info().do_transition(transition, user=user)
+        return self.get_state_info().make_transition(transition, user=user)
 
     @classmethod
     def get_state_choices(cls):
