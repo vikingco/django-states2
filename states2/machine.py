@@ -184,4 +184,4 @@ class StateTransition(object):
 
     @property
     def handler_kwargs(self):
-        return self.handler.func_code.co_names[3:]
+        return self.handler.func_code.co_varnames[3:]
