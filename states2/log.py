@@ -56,7 +56,7 @@ def _create_state_log_model(state_model, field_name, machine):
                 old_unicode = attrs['__unicode__']
 
                 def new_unicode(self):
-                    return '%s (%s)' % (old_unicode(self), self.Machine.get_state(self.state).description)
+                    return '%s (%s)' % (old_unicode(self), self.get_state_info().description)
 
             attrs['__unicode__'] = new_unicode
 
