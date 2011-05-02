@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.base import ModelBase
 from django.utils.translation import ugettext_lazy as _
+from django.utils import simplejson as json
 
 from states2 import conf
 from states2.fields import StateField
@@ -77,12 +78,19 @@ def _create_state_log_model(state_model, field_name, machine):
         from_state = models.CharField(max_length=32, choices=get_state_choices())
         to_state = models.CharField(max_length=32, choices=get_state_choices())
         user = models.ForeignKey(User, blank=True, null=True)
+        serialized_kwargs = models.TextField(blank=True)
 
         start_time = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=_('transition started at'))
         on = models.ForeignKey(state_model, related_name='all_transitions')
 
         class Meta:
             verbose_name = _('%s transition') % state_model._meta.verbose_name
+
+        @property
+        def kwargs(self):
+            if not self.serialized_kwargs:
+                return { }
+            return json.loads(self.serialized_kwargs)
 
         @property
         def completed(self):

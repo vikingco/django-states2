@@ -1,4 +1,5 @@
 from states2.exceptions import *
+from django.utils import simplejson as json
 
 
 def get_STATE_transitions(self, field='state'):
@@ -104,7 +105,13 @@ def get_STATE_info(self, field='state', machine=None):
 
             # Start transition log
             if _state_log_model:
-                transition_log = _state_log_model.objects.create(on=self, from_state=getattr(self, field), to_state=t.to_state, user=user)
+                transition_log = _state_log_model.objects.create(
+                                on=self,
+                                from_state=getattr(self, field),
+                                to_state=t.to_state,
+                                user=user,
+                                serialized_kwargs=json.dumps(kwargs)
+                                )
 
             # Transition should start from here
             if getattr(self, field) not in t.from_state:
