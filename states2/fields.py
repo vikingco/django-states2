@@ -9,11 +9,9 @@ from states2.model_methods import *
 
 class StateField(models.CharField):
     def __init__(self, **kwargs):
-        self._machine = kwargs.pop('machine')
-
-        # Use a dummy machine when this field is initiated by a south migration
-        if self._machine == 'south_machine':
-            self._machine = StateMachine
+        # State machine parameter. (Fall back to default machine.
+        # e.g. when South is creating an instance.)
+        self._machine = kwargs.pop('machine', StateMachine)
 
         kwargs.setdefault('max_length', 100)
         kwargs['choices'] = None
@@ -57,7 +55,6 @@ else:
             (StateField,),
             [],
             {
-                'machine': ['south_machine', { "is_value": True }],
                 'max_length': [100, { "is_value": True }],
             },
         ),
