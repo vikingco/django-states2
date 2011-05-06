@@ -1,5 +1,7 @@
 __all__ = ('StateMachine', 'StateDefinition', 'StateTransition')
 
+from states2.exceptions import TransitionNotFound
+
 
 class StateMachineMeta(type):
     def __new__(c, name, bases, attrs):
@@ -58,7 +60,7 @@ class StateMachineMeta(type):
         for t in self.transitions.values():
             if t.from_state == from_state and t.to_state == to_state:
                 return t
-        raise Exception("Transition not found")
+        raise TransitionNotFound(self, from_state, to_state)
 
 
 class StateDefinitionMeta(type):

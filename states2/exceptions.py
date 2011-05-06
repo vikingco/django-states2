@@ -27,6 +27,11 @@ class UnknownTransition(TransitionException):
         Exception.__init__(self, "Unknown transition '%s' on %s" %
                     (transition, instance.__class__.__name__))
 
+class TransitionNotFound(TransitionException):
+    def __init__(self, model, from_state, to_state):
+        Exception.__init__(self, "Transition from '%s' to '%s' on %s not found" %
+                    (from_state, to_state, model.__name__))
+
 
 class TransitionCannotStart(TransitionException):
     def __init__(self, instance, transition):
