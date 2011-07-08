@@ -43,6 +43,15 @@ class StateField(models.CharField):
         setattr(cls, 'get_%s_machine' % name,
             curry(get_STATE_machine, field=name, machine=self._machine))
 
+        # Override 'save', call initial state handler on save
+        real_save = cls.save
+        def new_save(obj, *args, **kwargs):
+            if not obj.id:
+                self._machine.get_state(obj.state).handler(obj)
+
+            return real_save(obj, *args, **kwargs)
+        cls.save = new_save
+
 
 # South introspection
 try:

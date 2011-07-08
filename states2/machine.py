@@ -73,6 +73,14 @@ class StateDefinitionMeta(type):
                 raise Exception('Please use lowercase names for state definitions (instead of %s)' % name)
             if not 'description' in attrs:
                 raise Exception('Please give a description to this state definition')
+
+        if 'handler' in attrs and len(attrs['handler'].func_code.co_varnames) < 2:
+            raise Exception('StateDefinition handler needs at least twoarguments')
+
+        # Turn `handler` into classmethod
+        if 'handler' in attrs:
+            attrs['handler'] = classmethod(attrs['handler'])
+
         return type.__new__(c, name, bases, attrs)
 
 
@@ -88,7 +96,6 @@ class StateTransitionMeta(type):
 
         if 'handler' in attrs and len(attrs['handler'].func_code.co_varnames) < 3:
             raise Exception('StateTransition handler needs at least three arguments')
-
 
         # Turn `has_permission` and `handler` into classmethods
         for m in ('has_permission', 'handler'):
@@ -154,6 +161,13 @@ class StateDefinition(object):
     # Not initial by default. The machine should define at least one state
     # where initial=True
     initial = False
+
+    def handler(cls, instance):
+        """
+        Override this method if some specific actions need
+        to be executed *after arriving* in this state.
+        """
+        pass
 
 
 class StateTransition(object):

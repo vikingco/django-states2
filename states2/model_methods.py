@@ -145,4 +145,8 @@ def get_STATE_info(self, field='state', machine=None):
                 if _state_log_model:
                     transition_log.make_transition('complete')
 
+                # *After completion*, call the handler of this state
+                # definition
+                machine.get_state(t.to_state).handler(self)
+
     return state_info()
