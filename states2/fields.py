@@ -46,10 +46,14 @@ class StateField(models.CharField):
         # Override 'save', call initial state handler on save
         real_save = cls.save
         def new_save(obj, *args, **kwargs):
+            # Save first using the real save function
+            result = real_save(obj, *args, **kwargs)
+
+            # Now call the handler
             if not obj.id:
                 self._machine.get_state(obj.state).handler(obj)
+            return result
 
-            return real_save(obj, *args, **kwargs)
         cls.save = new_save
 
 
