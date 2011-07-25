@@ -36,6 +36,9 @@ It's basically these two things:
        class paid(StateDefinition):
            description = _('Purchase paid')
 
+           def handler(self, instance):
+               code_to_execute_when_arriving_in_this_state()
+
        class shipped(StateDefinition):
            description = _('Purchase shipped')
 
@@ -74,19 +77,24 @@ Usage example:
 ::
 
     p = Purchase()
+
     # Will automatically create state object for this purchase, in the
     # initial state.
     p.save()
-    p.make_transition('initiate')
+    p.make_transition('initiate', request.user) # User parameter is optional
     p.state # Will return 'paid'
     p.state_description # Will return 'Purchase paid'
+
     # Will return all the state transitions for this instance.
     p.state_transitions.all()
+
     # The user who triggered this transition
     p.state_transitions.all()[0].user
+
     # Will return 'complete' or 'failed', depending on the state of this
     # state transition.
     p.state_transitions.all()[0].state
+
     # Returns an iterator of possible transitions for this purchase.
     p.possible_transitions
 
