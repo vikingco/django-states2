@@ -53,7 +53,6 @@ class StateField(models.CharField):
         real_save = sender.save
         def new_save(obj, *args, **kwargs):
             created = not obj.id
-            import pdb; pdb.set_trace()
 
             # Save first using the real save function
             result = real_save(obj, *args, **kwargs)
