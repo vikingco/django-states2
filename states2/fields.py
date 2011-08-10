@@ -43,10 +43,17 @@ class StateField(models.CharField):
         setattr(cls, 'get_%s_machine' % name,
             curry(get_STATE_machine, field=name, machine=self._machine))
 
+        models.signals.class_prepared.connect(self.finalize, sender=cls)
+
+    def finalize(self, sender, **kwargs):
         # Override 'save', call initial state handler on save
-        real_save = cls.save
+        # (Note that we wrap 'save' only after the class_prepared signal
+        # has been sent, it won't work otherwise when the model has a
+        # custom 'save' method.)
+        real_save = sender.save
         def new_save(obj, *args, **kwargs):
             created = not obj.id
+            import pdb; pdb.set_trace()
 
             # Save first using the real save function
             result = real_save(obj, *args, **kwargs)
@@ -56,7 +63,7 @@ class StateField(models.CharField):
                 self._machine.get_state(obj.state).handler(obj)
             return result
 
-        cls.save = new_save
+        sender.save = new_save
 
 
 # South introspection
