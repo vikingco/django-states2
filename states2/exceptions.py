@@ -27,6 +27,7 @@ class UnknownTransition(TransitionException):
         Exception.__init__(self, "Unknown transition '%s' on %s" %
                     (transition, instance.__class__.__name__))
 
+
 class TransitionNotFound(TransitionException):
     def __init__(self, model, from_state, to_state):
         Exception.__init__(self, "Transition from '%s' to '%s' on %s not found" %
@@ -37,6 +38,13 @@ class TransitionCannotStart(TransitionException):
     def __init__(self, instance, transition):
         Exception.__init__(self, "Transition '%s' on %s cannot start in the state '%s'" %
                     (transition, instance.__class__.__name__, instance.state))
+
+
+class TransitionNotValidated(TransitionException):
+    def __init__(self, instance, transition, validation_errors):
+        Exception.__init__(self, "Transition '%s' on %s does not validate (%i errors)" %
+                    (transition, instance.__class__.__name__, len(validation_errors)))
+        self.validation_errors = validation_errors
 
 
 class MachineDefinitionException(States2Exception):

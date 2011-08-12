@@ -89,6 +89,12 @@ def get_STATE_info(self, field='state', machine=None):
             # User should have permissions for this transition
             if user and not t.has_permission(self, user):
                 raise PermissionDenied(self, transition, user)
+
+            # Transition should validate
+            validation_errors = list(t.validate(self))
+            if validation_errors:
+                raise TransitionNotValidated(validation_errors)
+
             return True
 
         def make_transition(si_self, transition, user=None, **kwargs):
@@ -113,17 +119,13 @@ def get_STATE_info(self, field='state', machine=None):
                                 serialized_kwargs=json.dumps(kwargs)
                                 )
 
-            # Transition should start from here
-            if getattr(self, field) not in t.from_state:
+            # Test transition (access/execution validation)
+            try:
+                si_self.test_transition(transition, user)
+            except TransitionException, e:
                 if _state_log_model:
                     transition_log.make_transition('fail')
-                raise TransitionCannotStart(self, transition)
-
-            # User should have permissions for this transition
-            if user and not t.has_permission(self, user):
-                if _state_log_model:
-                    transition_log.make_transition('fail')
-                raise PermissionDenied(self, transition, user)
+                raise e
 
             # Execute
             if _state_log_model:

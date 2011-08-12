@@ -98,7 +98,7 @@ class StateTransitionMeta(type):
             raise Exception('StateTransition handler needs at least three arguments')
 
         # Turn `has_permission` and `handler` into classmethods
-        for m in ('has_permission', 'handler'):
+        for m in ('has_permission', 'handler', 'validate'):
             if m in attrs:
                 attrs[m] = classmethod(attrs[m])
 
@@ -179,10 +179,25 @@ class StateTransition(object):
     public = False
 
     def has_permission(cls, instance, user):
-        """ Override this method for special checking.  """
+        """
+        Check whether this user is allowed to execute this state transition on
+        this object. You can override this function for every StateTransition.
+        """
         return user.is_superuser
         # By default, only superusers are allowed to execute this transition.
         # Note that this is the only permission checking for the POST views.
+
+    def validate(cls, instance):
+        """
+        Validate whether this object is valid to make this state transition.
+        Yields a list of StateTransitionValidationError. You can override this
+        function for every StateTransition.
+        """
+        if False:
+            yield StateTransitionValidationError('Example error')
+        # Don't use the 'raise'-statement in here, just yield all the errors.
+        # yield StateTransitionValidationError("This object needs ....")
+        # yield StateTransitionValidationError("Another error ....")
 
     def handler(cls, instance, user):
         """
@@ -201,3 +216,10 @@ class StateTransition(object):
     @property
     def handler_kwargs(self):
         return self.handler.func_code.co_varnames[3:]
+
+
+class StateTransitionValidationError(Exception):
+    """
+    Errors yielded from StateTransition.validate.
+    """
+    pass
