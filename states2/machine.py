@@ -1,6 +1,6 @@
 __all__ = ('StateMachine', 'StateDefinition', 'StateTransition')
 
-from states2.exceptions import TransitionNotFound
+from states2.exceptions import TransitionNotFound, TransitionValidationError
 
 
 class StateMachineMeta(type):
@@ -190,14 +190,14 @@ class StateTransition(object):
     def validate(cls, instance):
         """
         Validate whether this object is valid to make this state transition.
-        Yields a list of StateTransitionValidationError. You can override this
+        Yields a list of TransitionValidationError. You can override this
         function for every StateTransition.
         """
         if False:
-            yield StateTransitionValidationError('Example error')
+            yield TransitionValidationError('Example error')
         # Don't use the 'raise'-statement in here, just yield all the errors.
-        # yield StateTransitionValidationError("This object needs ....")
-        # yield StateTransitionValidationError("Another error ....")
+        # yield TransitionValidationError("This object needs ....")
+        # yield TransitionValidationError("Another error ....")
 
     def handler(cls, instance, user):
         """
@@ -216,10 +216,3 @@ class StateTransition(object):
     @property
     def handler_kwargs(self):
         return self.handler.func_code.co_varnames[3:]
-
-
-class StateTransitionValidationError(Exception):
-    """
-    Errors yielded from StateTransition.validate.
-    """
-    pass

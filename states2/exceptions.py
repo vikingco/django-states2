@@ -50,3 +50,10 @@ class TransitionNotValidated(TransitionException):
 class MachineDefinitionException(States2Exception):
     def __init__(self, machine, description):
         Exception.__init__(self, 'Error in state machine definition: ' + description)
+
+
+class TransitionValidationError(TransitionException):
+    """
+    Errors yielded from StateTransition.validate.
+    """
+    pass
