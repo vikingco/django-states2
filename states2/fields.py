@@ -54,12 +54,16 @@ class StateField(models.CharField):
         def new_save(obj, *args, **kwargs):
             created = not obj.id
 
+            # Validate whether this is an existing state
+            # Can raise UnknownState
+            state = self._machine.get_state(obj.state)
+
             # Save first using the real save function
             result = real_save(obj, *args, **kwargs)
 
             # Now call the handler
             if created:
-                self._machine.get_state(obj.state).handler(obj)
+                state.handler(obj)
             return result
 
         sender.save = new_save

@@ -1,6 +1,6 @@
 __all__ = ('StateMachine', 'StateDefinition', 'StateTransition')
 
-from states2.exceptions import TransitionNotFound, TransitionValidationError
+from states2.exceptions import TransitionNotFound, TransitionValidationError, UnknownState
 
 
 class StateMachineMeta(type):
@@ -54,7 +54,10 @@ class StateMachineMeta(type):
         return state_name in self.states
 
     def get_state(self, state_name):
-        return self.states[state_name]
+        try:
+            return self.states[state_name]
+        except KeyError:
+            raise UnknownState(state_name)
 
     def get_transition_from_states(self, from_state, to_state):
         for t in self.transitions.values():
