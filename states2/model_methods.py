@@ -93,7 +93,7 @@ def get_STATE_info(self, field='state', machine=None):
             # Transition should validate
             validation_errors = list(t.validate(self))
             if validation_errors:
-                raise TransitionNotValidated(validation_errors)
+                raise TransitionNotValidated(si_self, transition, validation_errors)
 
             return True
 
