@@ -63,8 +63,9 @@ def get_STATE_info(self, field='state', machine=None):
             '''
             for name in machine.transitions:
                 t = machine.transitions[name]
-                if isinstance(t.from_state, basestring) and getattr(self, field) == t.from_state:
-                    yield t
+                if isinstance(t.from_state, basestring):
+                    if getattr(self, field) == t.from_state:
+                        yield t
                 elif getattr(self, field) in t.from_state:  # from_state is a list/tuple
                     yield t
 
@@ -149,6 +150,6 @@ def get_STATE_info(self, field='state', machine=None):
 
                 # *After completion*, call the handler of this state
                 # definition
-                machine.get_state(t.to_state).handler(self)
+                machine.get_state(t.to_state).handler(self, **kwargs)
 
     return state_info()
