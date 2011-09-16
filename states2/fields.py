@@ -50,19 +50,27 @@ class StateField(models.CharField):
         # (Note that we wrap 'save' only after the class_prepared signal
         # has been sent, it won't work otherwise when the model has a
         # custom 'save' method.)
+        #
+        # When .save(no_state_validation=True) has been used, the state won't
+        # be validated, and the handler won't we executed. It's recommended to
+        # use this parameter in South migrations, because South is not really
+        # aware of which state machine is used for which classes.
         real_save = sender.save
         def new_save(obj, *args, **kwargs):
             created = not obj.id
 
             # Validate whether this is an existing state
-            # Can raise UnknownState
-            state = self._machine.get_state(obj.state)
+            if kwargs.pop('no_state_validation', False):
+                state = None
+            else:
+                # Can raise UnknownState
+                state = self._machine.get_state(obj.state)
 
             # Save first using the real save function
             result = real_save(obj, *args, **kwargs)
 
             # Now call the handler
-            if created:
+            if created and state:
                 state.handler(obj)
             return result
 

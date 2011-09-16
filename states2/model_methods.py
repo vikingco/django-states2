@@ -133,7 +133,10 @@ def get_STATE_info(self, field='state', machine=None):
                 transition_log.make_transition('start')
 
             try:
+                # First call handler (handler should still see the original state.)
                 t.handler(self, user, **kwargs)
+
+                # Then set new state and save.
                 setattr(self, field, t.to_state)
                 self.save()
             except Exception, e:
