@@ -153,6 +153,6 @@ def get_STATE_info(self, field='state', machine=None):
 
                 # *After completion*, call the handler of this state
                 # definition
-                machine.get_state(t.to_state).handler(self, **kwargs)
+                machine.get_state(t.to_state).handler(self)
 
     return state_info()
