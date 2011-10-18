@@ -165,7 +165,7 @@ class StateMachine(object):
     log_transitions = True
 
     @classmethod
-    def get_admin_actions(cls):
+    def get_admin_actions(cls, field_name='state'):
         """
         Create a list of actions for use in the Django Admin.
         """
@@ -175,15 +175,19 @@ class StateMachine(object):
             def action(modeladmin, request, queryset):
                 # Dry run first
                 for o in queryset:
+                    get_STATE_info = getattr(o, 'get_%s_info' %s field_name)
                     try:
-                        o.test_transition(transition_name, request.user)
+                        get_STATE_info.test_transition(transition_name,
+                                                       request.user)
                     except TransitionException, e:
                         modeladmin.message_user(request, 'ERROR: %s on: %s' % (e.message, unicode(o)))
                         return
 
                 # Make actual transitions
                 for o in queryset:
-                    o.make_transition(transition_name, request.user)
+                    get_STATE_info = getattr(o, 'get_%s_info' %s field_name)
+                    get_STATE_info.make_transition(transition_name,
+                                                   request.user)
 
                 # Feeback
                 modeladmin.message_user(request, _('State changed for %s objects.' % len(queryset)))

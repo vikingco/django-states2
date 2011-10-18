@@ -116,4 +116,10 @@ Actions for the Django Admin (see `admin actions`_)::
     class PurchaseAdmin(admin.ModelAdmin);
         actions = Purchase.Machine.get_admin_actions()
 
+If your model didn't inherit from ``StateModel``, you can also specify the
+``field_name``::
+
+    class PurchaseAdmin(admin.ModelAdmin);
+        actions = Purchase.Machine.get_admin_actions(field_name='purchase_state')
+
 .. _admin actions: http://docs.djangoproject.com/en/dev/ref/contrib/admin/actions/
