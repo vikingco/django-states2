@@ -1,8 +1,9 @@
-===========================================================
+##################
 Django States (v2)
-===========================================================
+##################
 
 Authors:
+
 - Jonathan Slenders, City Live nv
 - Gert van Gool, City Live nv
 
@@ -28,7 +29,7 @@ It's basically these two things:
     class PurchaseStateMachine(StateMachine):
        log_transitions = True
 
-
+       # possible states
        class initiated(StateDefinition):
            description = _('Purchase initiated')
            initial = True
@@ -42,7 +43,7 @@ It's basically these two things:
        class shipped(StateDefinition):
            description = _('Purchase shipped')
 
-
+       # state transitions
        class mark_paid(StateTransition):
            from_state = 'initiated'
            to_state = 'paid'
@@ -66,15 +67,13 @@ It's basically these two things:
 You may of course nest the ``Machine`` class, like you would usually do
 for ``Meta``.
 
-This will create the necessary models. if ``log_transitions`` is
+This will create the necessary models. If ``log_transitions`` is
 enabled, another model is created. Everything should be compatible with
-South_.
+South_ for migrations.
 
 .. _South: http://south.aeracode.org/
 
-Usage example:
-
-::
+Usage example::
 
     p = Purchase()
 
@@ -107,18 +106,14 @@ For better transition control, override:
     Code to run during this transition. When an exception has been
     raised in here, the transition will not be made.
 
-Get all objects in a certain state:
-
-::
+Get all objects in a certain state::
 
     Purchase.objects.filter(state='initiated')
 
 
-Actions for the Django Admin (see `admin actions`_):
-
-.. _admin actions: http://docs.djangoproject.com/en/dev/ref/contrib/admin/actions/
-
-::
+Actions for the Django Admin (see `admin actions`_)::
 
     class PurchaseAdmin(admin.ModelAdmin);
         actions = Purchase.Machine.get_admin_actions()
+
+.. _admin actions: http://docs.djangoproject.com/en/dev/ref/contrib/admin/actions/
