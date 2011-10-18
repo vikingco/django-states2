@@ -56,6 +56,7 @@ class StateField(models.CharField):
         # use this parameter in South migrations, because South is not really
         # aware of which state machine is used for which classes.
         real_save = sender.save
+
         def new_save(obj, *args, **kwargs):
             created = not obj.id
 
@@ -88,7 +89,7 @@ else:
             (StateField,),
             [],
             {
-                'max_length': [100, { "is_value": True }],
+                'max_length': [100, {"is_value": True}],
             },
         ),
 

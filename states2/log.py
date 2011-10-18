@@ -67,6 +67,7 @@ def _create_state_log_model(state_model, field_name, machine):
             return ModelBase.__new__(c, class_name, bases, attrs)
 
     get_state_choices = machine.get_state_choices
+
     class _StateTransition(models.Model):
         """
         State transitions log entry.
@@ -89,7 +90,7 @@ def _create_state_log_model(state_model, field_name, machine):
         @property
         def kwargs(self):
             if not self.serialized_kwargs:
-                return { }
+                return {}
             return json.loads(self.serialized_kwargs)
 
         @property
