@@ -1,15 +1,21 @@
-.. django-states2 documentation master file, created by
-   sphinx-quickstart on Tue Oct 18 17:22:53 2011.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to django-states2's documentation!
-==========================================
+django-states2 documentation!
+=============================
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
+
+   states2/conf
+   states2/exceptions
+   states2/fields
+   states2/log
+   states2/machine
+   states2/model_methods
+   states2/models
+   states2/templatetags
+   states2/views
+
 
 Indices and tables
 ==================
