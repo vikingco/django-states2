@@ -6,8 +6,8 @@ from states2.exceptions import TransitionNotFound, TransitionValidationError, Un
 class StateMachineMeta(type):
     def __new__(c, name, bases, attrs):
         """
-        Validate state machine, and make `states`, `transitions` and
-        `initial_state` attributes available.
+        Validate state machine, and make ``states``, ``transitions`` and
+        ``initial_state`` attributes available.
         """
         states = {}
         transitions = {}
@@ -28,7 +28,8 @@ class StateMachineMeta(type):
             if isinstance(attrs[a], StateTransitionMeta):
                 transitions[a] = attrs[a]
 
-        # At least one initial state required. (But don't throw error for the base defintion.)
+        # At least one initial state required. (But don't throw error for the
+        # base defintion.)
         if not initial_state and bases != (object,):
             raise MachineDefinitionException(c, 'Machine does not define initial state')
 
@@ -37,8 +38,8 @@ class StateMachineMeta(type):
         attrs['initial_state'] = initial_state
 
         # Give all state transitions a 'to_state_description' attribute.
-        # by copying the description from the state definition. (no from_state_description,
-        # because multiple from-states are possible.)
+        # by copying the description from the state definition. (no
+        # from_state_description, because multiple from-states are possible.)
         for t in transitions.values():
             t.to_state_description = states[t.to_state].description
 
@@ -115,7 +116,7 @@ class StateMachine(object):
     """ Base class for a state machine definition """
     __metaclass__ = StateMachineMeta
 
-    # Log transitions by default
+    #: Log transitions? Log by default.
     log_transitions = True
 
     @classmethod
@@ -161,8 +162,8 @@ class StateDefinition(object):
     """ Base class for a state definition """
     __metaclass__ = StateDefinitionMeta
 
-    # Not initial by default. The machine should define at least one state
-    # where initial=True
+    #: Is this the initial state?  Not initial by default. The machine should
+    # define at least one state where ``initial=True``
     initial = False
 
     def handler(cls, instance):
@@ -177,8 +178,8 @@ class StateTransition(object):
     """ Base class for a state transitions """
     __metaclass__ = StateTransitionMeta
 
-    # When a transition has been defined as public, is meant to be seen
-    # by the end-user.
+    #: When a transition has been defined as public, is meant to be seen
+    #: by the end-user.
     public = False
 
     def has_permission(cls, instance, user):

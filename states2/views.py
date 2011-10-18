@@ -8,14 +8,19 @@ from states2.exceptions import PermissionDenied
 
 def make_state_transition(request):
     """
-    View to be called by AJAX code to do state transitions.
-    Required parameters:
-    - model_name: the name of the state model, as retured by instance.get_state_model_name.
-    - action: the name of the state transition, as given by StateTransition.get_name.
-    - id: the ID of the instance on which the state transition is applied.
+    View to be called by AJAX code to do state transitions. This must be a
+    ``POST`` request.
 
-    Optional, when the handler requires additional kwargs, they can be passed through as
-    kwarg-{{ kwargs_name }}
+    Required parameters:
+
+    - ``model_name``: the name of the state model, as retured by
+      ``instance.get_state_model_name``.
+    - ``action``: the name of the state transition, as given by
+      ``StateTransition.get_name``.
+    - ``id``: the ID of the instance on which the state transition is applied.
+
+    When the handler requires additional kwargs, they can be passed through as
+    optional parameters: ``kwarg-{{ kwargs_name }}``
     """
     if request.method == 'POST':
         # Process post parameters
