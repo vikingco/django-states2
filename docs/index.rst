@@ -1,12 +1,16 @@
 django-states2 documentation!
 =============================
 
-Contents:
-
 .. toctree::
    :maxdepth: 2
 
    readme
+
+Internal API
+------------
+.. toctree::
+   :maxdepth: 2
+
    states2/conf
    states2/exceptions
    states2/fields
