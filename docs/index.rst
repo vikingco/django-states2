@@ -6,6 +6,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   readme
    states2/conf
    states2/exceptions
    states2/fields
