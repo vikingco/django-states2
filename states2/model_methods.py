@@ -56,6 +56,10 @@ def get_STATE_info(self, field='state', machine=None):
             si = machine.get_state(getattr(self, field))
             return si.description
 
+        @property
+        def in_group(si_self):
+            return machine.get_state_groups(getattr(self, field))
+
         def possible_transitions(si_self):
             '''
             Return list of transitions which can be made from the current
