@@ -1,5 +1,7 @@
 __all__ = ('StateMachine', 'StateDefinition', 'StateTransition')
 
+from collections import defaultdict
+
 from states2.exceptions import TransitionNotFound, TransitionValidationError, UnknownState
 
 
@@ -11,6 +13,7 @@ class StateMachineMeta(type):
         """
         states = {}
         transitions = {}
+        groups = {}
         initial_state = None
         for a in attrs:
             # All definitions derived from StateDefinition
@@ -28,6 +31,11 @@ class StateMachineMeta(type):
             if isinstance(attrs[a], StateTransitionMeta):
                 transitions[a] = attrs[a]
 
+            # All definitions derived from StateGroup
+            # should be addressable by Machine.groups
+            if isinstance(attrs[a], StateGroupMeta):
+                groups[a] = attrs[a]
+
         # At least one initial state required. (But don't throw error for the base defintion.)
         if not initial_state and bases != (object,):
             raise MachineDefinitionException(c, 'Machine does not define initial state')
@@ -35,6 +43,7 @@ class StateMachineMeta(type):
         attrs['states'] = states
         attrs['transitions'] = transitions
         attrs['initial_state'] = initial_state
+        attrs['groups'] = groups
 
         # Give all state transitions a 'to_state_description' attribute.
         # by copying the description from the state definition. (no from_state_description,
@@ -65,6 +74,18 @@ class StateMachineMeta(type):
                 return t
         raise TransitionNotFound(self, from_state, to_state)
 
+    def get_state_groups(self, state_name):
+        '''
+        Get a dict of state groups, which will be either ``True`` or ``False``
+        if the current state is specified in that group.
+
+        :param str state_name: the current state
+        '''
+        result = defaultdict(lambda: False)
+        for group in self.groups:
+            result[group] = state_name in self.groups[group]
+        return result
+
 
 class StateDefinitionMeta(type):
     def __new__(c, name, bases, attrs):
@@ -83,6 +104,22 @@ class StateDefinitionMeta(type):
         # Turn `handler` into classmethod
         if 'handler' in attrs:
             attrs['handler'] = classmethod(attrs['handler'])
+
+        return type.__new__(c, name, bases, attrs)
+
+
+class StateGroupMeta(type):
+    def __new__(c, name, bases, attrs):
+        """
+        Validate state group definition
+        """
+        if bases != (object,):
+            if name.lower() != name:
+                raise Exception('Please use lowercase names for state groups (instead of %s)' % name)
+            if not 'description' in attrs or not attrs['description']:
+                raise Exception('Please give a description to this state group')
+            if not 'states' in attrs or not isinstance(attrs['states'], (list, set)):
+                raise Exception('Please give a list (or set) of states to this state group')
 
         return type.__new__(c, name, bases, attrs)
 
@@ -171,6 +208,14 @@ class StateDefinition(object):
         to be executed *after arriving* in this state.
         """
         pass
+
+
+class StateGroup(object):
+    "Base class for a state groups"
+    __metaclass__ = StateGroupMeta
+
+    #: Description for this state group
+    description = None
 
 
 class StateTransition(object):
