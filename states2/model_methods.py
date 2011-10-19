@@ -1,5 +1,6 @@
-from states2.exceptions import *
 from django.utils import simplejson as json
+
+from states2.exceptions import *
 
 
 def get_STATE_transitions(self, field='state'):
