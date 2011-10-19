@@ -13,8 +13,8 @@ class StateMachineMeta(type):
         transitions = {}
         initial_state = None
         for a in attrs:
-            # All definitions derived from StateDefinition
-            # should be addressable by Machine.states
+            # All definitions are derived from StateDefinition and should be
+            # addressable by Machine.states
             if isinstance(attrs[a], StateDefinitionMeta):
                 states[a] = attrs[a]
                 if states[a].initial:
@@ -23,8 +23,8 @@ class StateMachineMeta(type):
                     else:
                         raise Exception('Machine defines multiple initial states')
 
-            # All definitions derived from StateTransitionMeta
-            # should be addressable by Machine.transitions
+            # All transitions are derived from StateTransition and should be
+            # addressable by Machine.transitions
             if isinstance(attrs[a], StateTransitionMeta):
                 transitions[a] = attrs[a]
 
