@@ -17,6 +17,8 @@ class Command(BaseCommand):
             help='Layout to be used by GraphViz for visualization. Layouts: circo dot fdp neato twopi'),
         make_option('--format', '-f', action='store', dest='format', default='pdf',
             help='Format of the output file. Formats: pdf, jpg, png'),
+        make_option('--create-dot', action='store_true', dest='create_dot', default=False,
+            help='Create a dot file'),
     )
     args = '[model_label.field]'
     label = 'model name, i.e. mvno.subscription.state'
