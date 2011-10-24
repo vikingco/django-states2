@@ -8,6 +8,15 @@ from states2.model_methods import *
 
 
 class StateField(models.CharField):
+    '''
+    Add state information to a model.
+
+    This will add extra methods to the model.
+
+    Usage::
+
+        status = StateField(machine=PowerState)
+    '''
     def __init__(self, **kwargs):
         # State machine parameter. (Fall back to default machine.
         # e.g. when South is creating an instance.)
@@ -46,15 +55,18 @@ class StateField(models.CharField):
         models.signals.class_prepared.connect(self.finalize, sender=cls)
 
     def finalize(self, sender, **kwargs):
-        # Override 'save', call initial state handler on save
-        # (Note that we wrap 'save' only after the class_prepared signal
-        # has been sent, it won't work otherwise when the model has a
-        # custom 'save' method.)
-        #
-        # When .save(no_state_validation=True) has been used, the state won't
-        # be validated, and the handler won't we executed. It's recommended to
-        # use this parameter in South migrations, because South is not really
-        # aware of which state machine is used for which classes.
+        '''
+        Override ``save``, call initial state handler on save.
+
+        When ``.save(no_state_validation=True)`` has been used, the state won't
+        be validated, and the handler won't we executed. It's recommended to
+        use this parameter in South migrations, because South is not really
+        aware of which state machine is used for which classes.
+
+        Note that we wrap ``save`` only after the ``class_prepared`` signal
+        has been sent, it won't work otherwise when the model has a
+        custom ``save`` method.
+        '''
         real_save = sender.save
         def new_save(obj, *args, **kwargs):
             created = not obj.id

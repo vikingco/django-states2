@@ -12,6 +12,12 @@ from states2.machine import StateMachine, StateDefinition, StateTransition
 def _create_state_log_model(state_model, field_name, machine):
     """
     Create a new model for logging the state transitions.
+
+    :param django.db.models.Model state_model: the model that has the
+        :class:`~states2.fields.StateField`
+    :param str field_name: the field name of the
+        :class:`~states2.fields.StateField` on the model
+    :param states2.machine.StateMachine machine: the state machine that's used
     """
     class StateTransitionMachine(StateMachine):
         # We don't need logging of state transitions in a state transition log entry,
