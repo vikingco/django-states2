@@ -140,6 +140,7 @@ class StateTransitionMeta(type):
                 raise Exception('Please use either from_state or from_states')
             if 'from_state' in attrs:
                 attrs['from_states'] = [attrs['from_state']]
+                del attrs['from_state']
             if not 'from_states' in attrs:
                 raise Exception('Please give a from_state to this state transition')
             if not 'to_state' in attrs:
