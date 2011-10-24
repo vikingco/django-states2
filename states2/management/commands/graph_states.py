@@ -54,17 +54,18 @@ class Command(BaseCommand):
             return None
 
         for trion_name,trion in STATE_MACHINE.transitions.iteritems():
-            edge = g.add_edge(nodes[trion.from_state], nodes[trion.to_state])
-            edge.dir = 'forward'
-            edge.arrowhead = 'normal'
-            edge.label = '\n_'.join(trion.get_name().split('_'))
-            edge.fontsize = 8
-            edge.fontname = 'Arial'
+            for from_state in trion.from_states:
+                edge = g.add_edge(nodes[from_state], nodes[trion.to_state])
+                edge.dir = 'forward'
+                edge.arrowhead = 'normal'
+                edge.label = '\n_'.join(trion.get_name().split('_'))
+                edge.fontsize = 8
+                edge.fontname = 'Arial'
 
-            if getattr(trion, 'confirm_needed', False):
-                edge.style = 'dotted'
-            edges[u'%s-->%s' % (trion.from_state, trion.to_state)] = edge
-            logger.debug('Created edge for %s', trion.get_name())
+                if getattr(trion, 'confirm_needed', False):
+                    edge.style = 'dotted'
+                edges[u'%s-->%s' % (from_state, trion.to_state)] = edge
+            logger.debug('Created %d edges for %s', len(trion.from_states), trion.get_name())
 
             #if trion.next_function_name is not None:
             #    tr = find(lambda t: t.function_name == trion.next_function_name and t.from_state == trion.to_state, STATE_MACHINE.trions)
