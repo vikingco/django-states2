@@ -79,7 +79,7 @@ class StateMachineMeta(type):
 
     def get_transition_from_states(self, from_state, to_state):
         for t in self.transitions.values():
-            if t.from_state == from_state and t.to_state == to_state:
+            if from_state in t.from_states and t.to_state == to_state:
                 return t
         raise TransitionNotFound(self, from_state, to_state)
 
@@ -136,7 +136,11 @@ class StateGroupMeta(type):
 class StateTransitionMeta(type):
     def __new__(c, name, bases, attrs):
         if bases != (object,):
-            if not 'from_state' in attrs:
+            if 'from_state' in attrs and 'from_states' in attrs:
+                raise Exception('Please use either from_state or from_states')
+            if 'from_state' in attrs:
+                attrs['from_states'] = [attrs['from_state']]
+            if not 'from_states' in attrs:
                 raise Exception('Please give a from_state to this state transition')
             if not 'to_state' in attrs:
                 raise Exception('Please give a from_state to this state transition')
@@ -154,7 +158,7 @@ class StateTransitionMeta(type):
         return type.__new__(c, name, bases, attrs)
 
     def __unicode__(self):
-        return '%s: (from %s to %s)' % (unicode(self.description), self.from_state, self.to_state)
+        return '%s: (from %s to %s)' % (unicode(self.description), ' or '.join(self.from_states), self.to_state)
 
 
 class StateMachine(object):
