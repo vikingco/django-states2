@@ -4,10 +4,6 @@ from django.template import Library
 
 register = Library()
 
-# {% can_make_transition object transition_name %}
-#    ... Content to be rendered when request.user is allowed to do this transition.
-# {% end_can_make_transition %}
-
 
 class CanMakeTransitionNode(Node):
     def __init__(self, object, transition_name, nodelist):
@@ -29,9 +25,14 @@ class CanMakeTransitionNode(Node):
 @register.tag
 def can_make_transition(parser, token):
     """
-    {% can_make_transition object transition_name %}
-       ...
-    {% end_can_make_transition %}
+    Conditional tag to validate whether it's possible to make a state
+    transition (and the user is allowed to make the transition)
+
+    Usage::
+
+        {% can_make_transition object transition_name %}
+           ...
+        {% end_can_make_transition %}
     """
     # Parameters
     args = token.split_contents()

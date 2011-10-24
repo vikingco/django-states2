@@ -54,14 +54,18 @@ class StateModelBase(ModelBase):
 
 class StateModel(models.Model):
     """
-    Every model which needs state should inherit this abstract model.
+    Every model which needs state can inherit this abstract model.
+
+    This will dynamically add a :class:`~states2.fields.StateField` named
+    ``state``.
     """
     __metaclass__ = StateModelBase
 
     class Machine(StateMachine):
         """
         Example machine definition. State machines should override this by
-        creating a new machine, inherited directly from StateMachine.
+        creating a new machine, inherited directly from
+        :class:`~states2.machine.StateMachine`.
         """
         # True when we should log all transitions
         log_transitions = False

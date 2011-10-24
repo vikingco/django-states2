@@ -12,16 +12,16 @@ logger = logging.getLogger(__name__)
 class StateMachineMeta(type):
     def __new__(c, name, bases, attrs):
         """
-        Validate state machine, and make `states`, `transitions` and
-        `initial_state` attributes available.
+        Validate state machine, and make ``states``, ``transitions`` and
+        ``initial_state`` attributes available.
         """
         states = {}
         transitions = {}
         groups = {}
         initial_state = None
         for a in attrs:
-            # All definitions derived from StateDefinition
-            # should be addressable by Machine.states
+            # All definitions are derived from StateDefinition and should be
+            # addressable by Machine.states
             if isinstance(attrs[a], StateDefinitionMeta):
                 states[a] = attrs[a]
                 logger.debug('Found state: %s' % states[a].get_name())
@@ -32,8 +32,8 @@ class StateMachineMeta(type):
                     else:
                         raise Exception('Machine defines multiple initial states')
 
-            # All definitions derived from StateTransitionMeta
-            # should be addressable by Machine.transitions
+            # All transitions are derived from StateTransition and should be
+            # addressable by Machine.transitions
             if isinstance(attrs[a], StateTransitionMeta):
                 transitions[a] = attrs[a]
                 logger.debug('Found state transition: %s' % transitions[a].get_name())
@@ -44,7 +44,8 @@ class StateMachineMeta(type):
                 groups[a] = attrs[a]
                 logger.debug('Found state group: %s' % groups[a].get_name())
 
-        # At least one initial state required. (But don't throw error for the base defintion.)
+        # At least one initial state required. (But don't throw error for the
+        # base defintion.)
         if not initial_state and bases != (object,):
             raise MachineDefinitionException(c, 'Machine does not define initial state')
 
@@ -54,8 +55,8 @@ class StateMachineMeta(type):
         attrs['groups'] = groups
 
         # Give all state transitions a 'to_state_description' attribute.
-        # by copying the description from the state definition. (no from_state_description,
-        # because multiple from-states are possible.)
+        # by copying the description from the state definition. (no
+        # from_state_description, because multiple from-states are possible.)
         for t in transitions.values():
             t.to_state_description = states[t.to_state].description
 
@@ -160,7 +161,7 @@ class StateMachine(object):
     """ Base class for a state machine definition """
     __metaclass__ = StateMachineMeta
 
-    # Log transitions by default
+    #: Log transitions? Log by default.
     log_transitions = True
 
     @classmethod
@@ -206,8 +207,8 @@ class StateDefinition(object):
     """ Base class for a state definition """
     __metaclass__ = StateDefinitionMeta
 
-    # Not initial by default. The machine should define at least one state
-    # where initial=True
+    #: Is this the initial state?  Not initial by default. The machine should
+    # define at least one state where ``initial=True``
     initial = False
 
     def handler(cls, instance):
@@ -244,8 +245,8 @@ class StateTransition(object):
     """ Base class for a state transitions """
     __metaclass__ = StateTransitionMeta
 
-    # When a transition has been defined as public, is meant to be seen
-    # by the end-user.
+    #: When a transition has been defined as public, is meant to be seen
+    #: by the end-user.
     public = False
 
     def has_permission(cls, instance, user):
