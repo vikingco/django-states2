@@ -209,6 +209,13 @@ class StateDefinition(object):
         """
         pass
 
+    @classmethod
+    def get_name(cls):
+        """
+        The name of the state is given by its classname
+        """
+        return cls.__name__
+
 
 class StateGroup(object):
     "Base class for a state groups"
@@ -216,6 +223,13 @@ class StateGroup(object):
 
     #: Description for this state group
     description = None
+
+    @classmethod
+    def get_name(cls):
+        """
+        The name of the state group is given by its classname
+        """
+        return cls.__name__
 
 
 class StateTransition(object):
