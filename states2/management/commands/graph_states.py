@@ -1,3 +1,4 @@
+import logging
 import os
 from optparse import make_option
 from yapgvb import Graph
@@ -5,6 +6,8 @@ from yapgvb import Graph
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import get_model
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -34,12 +37,14 @@ class Command(BaseCommand):
         g = Graph('state_machine_graph_%s' % model_label, False)
         g.label = 'State Machine Graph %s' % name
         nodes = {}
+        edges = {}
 
         for state in STATE_MACHINE.states:
             nodes[state] = g.add_node(state,
                                       label=state.upper(),
                                       shape='rect',
                                       fontname='Arial')
+            logger.debug('Created node for %s', state)
 
         def find(f, a):
             for i in a:
@@ -56,6 +61,8 @@ class Command(BaseCommand):
 
             if getattr(trion, 'confirm_needed', False):
                 edge.style = 'dotted'
+            edges[u'%s-->%s' % (trion.from_state, trion.to_state)] = edge
+            logger.debug('Created edge for %s', trion.get_name())
 
             #if trion.next_function_name is not None:
             #    tr = find(lambda t: t.function_name == trion.next_function_name and t.from_state == trion.to_state, STATE_MACHINE.trions)
@@ -74,11 +81,15 @@ class Command(BaseCommand):
             #    edge.color = 'red'
             #    edge.style = 'dashed'
             #    edge.label += '\n(auto)'
+        logger.info('Creating state graph for %s with %d nodes and %d edges' % (name, len(nodes), len(edges)))
 
         loc = 'state_machine_%s' % (model_label,)
         if options['create_dot']:
             g.write('%s.dot' % loc)
 
+        logger.debug('Setting layout %s' % options['layout'])
         g.layout(options['layout'])
         format = options['format']
+        logger.debug('Trying to render %s' % loc)
         g.render(loc + '.' + format, format, None)
+        logger.info('Created state graph for %s at %s' % (name, loc))

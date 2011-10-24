@@ -1,8 +1,12 @@
 __all__ = ('StateMachine', 'StateDefinition', 'StateTransition')
 
 from collections import defaultdict
+import logging
 
 from states2.exceptions import TransitionNotFound, TransitionValidationError, UnknownState
+
+
+logger = logging.getLogger(__name__)
 
 
 class StateMachineMeta(type):
@@ -20,7 +24,9 @@ class StateMachineMeta(type):
             # should be addressable by Machine.states
             if isinstance(attrs[a], StateDefinitionMeta):
                 states[a] = attrs[a]
+                logger.debug('Found state: %s' % states[a].get_name())
                 if states[a].initial:
+                    logger.debug('Found initial state: %s' % states[a].get_name())
                     if not initial_state:
                         initial_state = a
                     else:
@@ -30,11 +36,13 @@ class StateMachineMeta(type):
             # should be addressable by Machine.transitions
             if isinstance(attrs[a], StateTransitionMeta):
                 transitions[a] = attrs[a]
+                logger.debug('Found state transition: %s' % transitions[a].get_name())
 
             # All definitions derived from StateGroup
             # should be addressable by Machine.groups
             if isinstance(attrs[a], StateGroupMeta):
                 groups[a] = attrs[a]
+                logger.debug('Found state group: %s' % groups[a].get_name())
 
         # At least one initial state required. (But don't throw error for the base defintion.)
         if not initial_state and bases != (object,):
