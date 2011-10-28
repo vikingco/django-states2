@@ -71,6 +71,9 @@ This will create the necessary models. If ``log_transitions`` is
 enabled, another model is created. Everything should be compatible with
 South_ for migrations.
 
+.. note:: If you're creating a `DataMigration` in South_ remember to use
+  `obj.save(no_state_validation=True)'
+
 .. _South: http://south.aeracode.org/
 
 Usage example::
