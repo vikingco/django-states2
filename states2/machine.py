@@ -178,7 +178,7 @@ class StateMachine(object):
             def action(modeladmin, request, queryset):
                 # Dry run first
                 for o in queryset:
-                    get_STATE_info = getattr(o, 'get_%s_info' %s field_name)
+                    get_STATE_info = getattr(o, 'get_%s_info' % field_name)
                     try:
                         get_STATE_info.test_transition(transition_name,
                                                        request.user)
@@ -188,7 +188,7 @@ class StateMachine(object):
 
                 # Make actual transitions
                 for o in queryset:
-                    get_STATE_info = getattr(o, 'get_%s_info' %s field_name)
+                    get_STATE_info = getattr(o, 'get_%s_info' % field_name)
                     get_STATE_info.make_transition(transition_name,
                                                    request.user)
 
