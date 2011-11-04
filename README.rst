@@ -113,6 +113,22 @@ Get all objects in a certain state::
 
     Purchase.objects.filter(state='initiated')
 
+Validation
+~~~~~~~~~~
+You can add a test that needs to pass before a state transition can be
+executed. Well, you can add 2: one based on the current user
+(``has_permission``) and one generic (``validate``).
+
+So on a ``StateTransition``-object you need to specify an extra ``validate``
+function (signature is ``validate(cls, instance)``). This should yield
+``TransitionValidationError``, this way you can return multiple errors on
+that need to pass before the transition can happen.
+
+The ``has_permission`` function (signature ``has_permission(transition,
+instance, user)``) should check whether the given user is allowed to make the
+transition. E.g. a super user can moderate all comments while other users can
+only moderate comments on their blog-posts.
+
 Groups
 ~~~~~~
 Sometimes you want to group several states together, since for a certain view
