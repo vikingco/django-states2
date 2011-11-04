@@ -113,8 +113,11 @@ Get all objects in a certain state::
 
     Purchase.objects.filter(state='initiated')
 
-
-Actions for the Django Admin (see `admin actions`_)::
+Admin actions
+~~~~~~~~~~~~~
+By specifying actions for the Django Admin (see `admin actions`_), you can do
+state transitions for the admin site. To support this in your model, update
+your ``ModelAdmin``::
 
     class PurchaseAdmin(admin.ModelAdmin);
         actions = Purchase.Machine.get_admin_actions()
