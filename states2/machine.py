@@ -92,7 +92,7 @@ class StateMachineMeta(type):
         '''
         result = defaultdict(lambda: False)
         for group in self.groups:
-            result[group] = state_name in self.groups[group]
+            result[group] = state_name in self.groups[group].states
         return result
 
 
