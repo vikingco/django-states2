@@ -248,7 +248,7 @@ class StateGroup(object):
     __metaclass__ = StateGroupMeta
 
     #: Description for this state group
-    description = None
+    description = ''
 
     @classmethod
     def get_name(cls):
