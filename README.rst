@@ -142,3 +142,15 @@ If your model didn't inherit from ``StateModel``, you can also specify the
         actions = Purchase.Machine.get_admin_actions(field_name='purchase_state')
 
 .. _admin actions: http://docs.djangoproject.com/en/dev/ref/contrib/admin/actions/
+
+State graph
+~~~~~~~~~~~
+You can get a graph of your states by running the ``graph_states`` management
+command.
+
+::
+
+  python manage.py graph_states myapp.Purchase.state
+
+This requires `graphviz <http://graphviz.org>` and python bindings for
+graphviz: ``pygraphviz`` and ``yapgvb``.
