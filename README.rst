@@ -113,6 +113,19 @@ Get all objects in a certain state::
 
     Purchase.objects.filter(state='initiated')
 
+Groups
+~~~~~~
+Sometimes you want to group several states together, since for a certain view
+(or other content) it doesn't really matter which of the states it is. We
+support 2 different state groups, inclusive (only these) or exclusive
+(everything but these)::
+
+      class is_paid(StateGroup):
+          states = ['paid', 'shipped']
+
+      class is_paid(StateGroup):
+          exclude_states = ['initiated']
+
 Admin actions
 ~~~~~~~~~~~~~
 By specifying actions for the Django Admin (see `admin actions`_), you can do
