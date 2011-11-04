@@ -71,8 +71,8 @@ This will create the necessary models. If ``log_transitions`` is
 enabled, another model is created. Everything should be compatible with
 South_ for migrations.
 
-.. note:: If you're creating a `DataMigration` in South_ remember to use
-  `obj.save(no_state_validation=True)'
+.. note:: If you're creating a ``DataMigration`` in South_ remember to use
+  ``obj.save(no_state_validation=True)``
 
 .. _South: http://south.aeracode.org/
 
@@ -113,8 +113,24 @@ Get all objects in a certain state::
 
     Purchase.objects.filter(state='initiated')
 
+Groups
+~~~~~~
+Sometimes you want to group several states together, since for a certain view
+(or other content) it doesn't really matter which of the states it is. We
+support 2 different state groups, inclusive (only these) or exclusive
+(everything but these)::
 
-Actions for the Django Admin (see `admin actions`_)::
+      class is_paid(StateGroup):
+          states = ['paid', 'shipped']
+
+      class is_paid(StateGroup):
+          exclude_states = ['initiated']
+
+Admin actions
+~~~~~~~~~~~~~
+By specifying actions for the Django Admin (see `admin actions`_), you can do
+state transitions for the admin site. To support this in your model, update
+your ``ModelAdmin``::
 
     class PurchaseAdmin(admin.ModelAdmin);
         actions = Purchase.Machine.get_admin_actions()
