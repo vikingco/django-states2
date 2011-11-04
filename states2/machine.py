@@ -123,8 +123,6 @@ class StateGroupMeta(type):
         Validate state group definition
         """
         if bases != (object,):
-            if name.lower() != name:
-                raise Exception('Please use lowercase names for state groups (instead of %s)' % name)
             if not 'description' in attrs or not attrs['description']:
                 raise Exception('Please give a description to this state group')
             if not 'states' in attrs or not isinstance(attrs['states'], (list, set)):
