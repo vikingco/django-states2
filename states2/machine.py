@@ -92,7 +92,11 @@ class StateMachineMeta(type):
         '''
         result = defaultdict(lambda: False)
         for group in self.groups:
-            result[group] = state_name in self.groups[group].states
+            sg = self.groups[group]
+            if hasattr(sg, 'states'):
+                result[group] = state_name in sg.states
+            elif hasattr(sg, 'exclude_states'):
+                result[group] = not state_name in sg.exclude_states
         return result
 
 
@@ -123,9 +127,15 @@ class StateGroupMeta(type):
         Validate state group definition
         """
         if bases != (object,):
-            if not 'description' in attrs or not attrs['description']:
-                raise Exception('Please give a description to this state group')
-            if not 'states' in attrs or not isinstance(attrs['states'], (list, set)):
+            # check attributes
+            if 'states' in attrs and 'exclude_states' in attrs:
+                raise Exception('Use either states or exclude_states but not both')
+            elif not 'states' in attrs and not 'exclude_states' in attrs:
+                raise Exception('Please specify states or exclude_states to this state group')
+            # check type of attributes
+            if 'exclude_states' in attrs and not isinstance(attrs['exclude_states'], (list, set)):
+                raise Exception('Please give a list (or set) of states to this state group')
+            elif 'states' in attrs and not isinstance(attrs['states'], (list, set)):
                 raise Exception('Please give a list (or set) of states to this state group')
 
         return type.__new__(c, name, bases, attrs)
