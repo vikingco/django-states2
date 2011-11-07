@@ -74,6 +74,10 @@ def get_STATE_info(self, field='state', machine=None):
 
         @property
         def in_group(si_self):
+            '''
+            In what groups is this state? It's a dictionary that will return
+            ``True`` for the state groups that this state is in.
+            '''
             return machine.get_state_groups(getattr(self, field))
 
         def possible_transitions(si_self):
