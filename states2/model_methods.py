@@ -1,6 +1,9 @@
 from django.utils import simplejson as json
 
 from states2.exceptions import *
+from states2.signals import *
+
+import django.dispatch
 
 
 def get_STATE_transitions(self, field='state'):
@@ -54,6 +57,10 @@ def get_STATE_info(self, field='state', machine=None):
         return None
 
     class state_info(object):
+        before_execute = django.dispatch.Signal(providing_args=['from_state',
+                                                                'to_state'])
+        after_execute = django.dispatch.Signal(providing_args=['from_state',
+                                                               'to_state'])
         '''
         An extra object that hijackes the actual state methods.
         '''
@@ -154,12 +161,20 @@ def get_STATE_info(self, field='state', machine=None):
                 transition_log.make_transition('start')
 
             try:
+                from_state = getattr(self, field)
+
+                before_state_execute.send(sender=self,
+                                          from_state=from_state,
+                                          to_state=t.to_state)
                 # First call handler (handler should still see the original state.)
                 t.handler(self, user, **kwargs)
 
                 # Then set new state and save.
                 setattr(self, field, t.to_state)
                 self.save()
+                after_state_execute.send(sender=self,
+                                         from_state=from_state,
+                                         to_state=t.to_state)
             except Exception, e:
                 if _state_log_model:
                     transition_log.make_transition('fail')
