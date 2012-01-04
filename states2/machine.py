@@ -147,7 +147,7 @@ class StateTransitionMeta(type):
             if 'from_state' in attrs and 'from_states' in attrs:
                 raise Exception('Please use either from_state or from_states')
             if 'from_state' in attrs:
-                attrs['from_states'] = [attrs['from_state']]
+                attrs['from_states'] = (attrs['from_state'],)
                 del attrs['from_state']
             if not 'from_states' in attrs:
                 raise Exception('Please give a from_state to this state transition')
@@ -167,7 +167,7 @@ class StateTransitionMeta(type):
         return type.__new__(c, name, bases, attrs)
 
     def __unicode__(self):
-        return '%s: (from %s to %s)' % (unicode(self.description), ' or '.join(self.from_states[0]), self.to_state)
+        return '%s: (from %s to %s)' % (unicode(self.description), ' or '.join(self.from_states), self.to_state)
 
 
 class StateMachine(object):
