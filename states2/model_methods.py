@@ -57,10 +57,6 @@ def get_STATE_info(self, field='state', machine=None):
         return None
 
     class state_info(object):
-        before_execute = django.dispatch.Signal(providing_args=['from_state',
-                                                                'to_state'])
-        after_execute = django.dispatch.Signal(providing_args=['from_state',
-                                                               'to_state'])
         '''
         An extra object that hijackes the actual state methods.
         '''

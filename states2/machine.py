@@ -167,7 +167,7 @@ class StateTransitionMeta(type):
         return type.__new__(c, name, bases, attrs)
 
     def __unicode__(self):
-        return '%s: (from %s to %s)' % (unicode(self.description), ' or '.join(self.from_states), self.to_state)
+        return '%s: (from %s to %s)' % (unicode(self.description), ' or '.join(self.from_states[0]), self.to_state)
 
 
 class StateMachine(object):
