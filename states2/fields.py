@@ -4,7 +4,9 @@ from django.db import models
 from django.utils.functional import curry
 from states2.machine import StateMachine
 
-from states2.model_methods import *
+from states2.model_methods import (get_STATE_transitions,
+                                   get_public_STATE_transitions,
+                                   get_STATE_info, get_STATE_machine)
 
 
 class StateField(models.CharField):

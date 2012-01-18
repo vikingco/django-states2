@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import patterns, url
 from states2.views import make_state_transition
 
 urlpatterns = patterns('',
