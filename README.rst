@@ -6,6 +6,7 @@ Authors:
 
 - Jonathan Slenders, City Live nv
 - Gert van Gool, City Live nv
+- Maarten Timmerman, City Live nv
 
 Description
 -----------
@@ -168,5 +169,5 @@ command.
 
   python manage.py graph_states myapp.Purchase.state
 
-This requires `graphviz <http://graphviz.org>` and python bindings for
+This requires `graphviz <http://graphviz.org>`_ and python bindings for
 graphviz: ``pygraphviz`` and ``yapgvb``.
