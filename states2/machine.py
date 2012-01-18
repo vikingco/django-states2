@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 
 class StateMachineMeta(type):
     def __new__(c, name, bases, attrs):
-        """
+        '''
         Validate state machine, and make ``states``, ``transitions`` and
         ``initial_state`` attributes available.
-        """
+        '''
         states = {}
         transitions = {}
         groups = {}
@@ -63,21 +63,60 @@ class StateMachineMeta(type):
         return type.__new__(c, name, bases, attrs)
 
     def has_transition(self, transition_name):
+        '''
+        Gets whether a transition with the given name is defined in the
+        machine.
+
+        :param str transition_name: the transition name
+
+        :returns: ``True`` or ``False``
+        '''
         return transition_name in self.transitions
 
     def get_transitions(self, transition_name):
+        '''
+        Gets a transition with the given name.
+
+        :param str transition_name: the transition name
+
+        :returns: the :class:`StateTransition` or raises a :class:`KeyError`
+        '''
         return self.transitions[transition_name]
 
     def has_state(self, state_name):
+        '''
+        Gets whether a state with given name is defined in the machine.
+
+        :param str state_name: the state name
+
+        :returns: ``True`` or ``False``
+        '''
         return state_name in self.states
 
     def get_state(self, state_name):
+        '''
+        Gets the state with given name
+
+        :param str state_name: the state name
+
+        :returns: a :class:`StateDefinition` or raises
+            a :class:`~states2.exceptions.UnknownState`
+        '''
         try:
             return self.states[state_name]
         except KeyError:
             raise UnknownState(state_name)
 
     def get_transition_from_states(self, from_state, to_state):
+        '''
+        Gets the transitions between 2 specified states.
+
+        :param str from_state: the from state
+        :param str to_state: the to state
+
+        :returns: a :class:`StateTransition` or raises
+            a :class:`~states2.exceptions.TransitionNotFound`
+        '''
         for t in self.transitions.values():
             if from_state in t.from_states and t.to_state == to_state:
                 return t
@@ -85,8 +124,11 @@ class StateMachineMeta(type):
 
     def get_state_groups(self, state_name):
         '''
-        Get a dict of state groups, which will be either ``True`` or ``False``
-        if the current state is specified in that group.
+        Gets a :class:`dict` of state groups, which will be either ``True`` or
+        ``False`` if the current state is specified in that group.
+
+        .. note:: That groups that are not defined will still return ``False``
+            and not raise a ``KeyError``.
 
         :param str state_name: the current state
         '''
@@ -102,9 +144,9 @@ class StateMachineMeta(type):
 
 class StateDefinitionMeta(type):
     def __new__(c, name, bases, attrs):
-        """
+        '''
         Validate state definition
-        """
+        '''
         if bases != (object,):
             if name.lower() != name:
                 raise Exception('Please use lowercase names for state definitions (instead of %s)' % name)
@@ -123,9 +165,9 @@ class StateDefinitionMeta(type):
 
 class StateGroupMeta(type):
     def __new__(c, name, bases, attrs):
-        """
+        '''
         Validate state group definition
-        """
+        '''
         if bases != (object,):
             # check attributes
             if 'states' in attrs and 'exclude_states' in attrs:
@@ -143,6 +185,9 @@ class StateGroupMeta(type):
 
 class StateTransitionMeta(type):
     def __new__(c, name, bases, attrs):
+        '''
+        Validate state transition definition
+        '''
         if bases != (object,):
             if 'from_state' in attrs and 'from_states' in attrs:
                 raise Exception('Please use either from_state or from_states')
@@ -171,7 +216,9 @@ class StateTransitionMeta(type):
 
 
 class StateMachine(object):
-    """ Base class for a state machine definition """
+    '''
+    Base class for a state machine definition
+    '''
     __metaclass__ = StateMachineMeta
 
     #: Log transitions? Log by default.
@@ -179,9 +226,9 @@ class StateMachine(object):
 
     @classmethod
     def get_admin_actions(cls, field_name='state'):
-        """
-        Create a list of actions for use in the Django Admin.
-        """
+        '''
+        Creates a list of actions for use in the Django Admin.
+        '''
         actions = []
 
         def create_action(transition_name):
@@ -216,12 +263,16 @@ class StateMachine(object):
 
     @classmethod
     def get_state_choices(cls):
-        'Get all possible states'
+        '''
+        Gets all possible choices for a model.
+        '''
         return [(k, cls.states[k].description) for k in cls.states.keys()]
 
 
 class StateDefinition(object):
-    """ Base class for a state definition """
+    '''
+    Base class for a state definition
+    '''
     __metaclass__ = StateDefinitionMeta
 
     #: Is this the initial state?  Not initial by default. The machine should
@@ -229,22 +280,24 @@ class StateDefinition(object):
     initial = False
 
     def handler(cls, instance):
-        """
+        '''
         Override this method if some specific actions need
         to be executed *after arriving* in this state.
-        """
+        '''
         pass
 
     @classmethod
     def get_name(cls):
-        """
+        '''
         The name of the state is given by its classname
-        """
+        '''
         return cls.__name__
 
 
 class StateGroup(object):
-    "Base class for a state groups"
+    '''
+    Base class for a state groups
+    '''
     __metaclass__ = StateGroupMeta
 
     #: Description for this state group
@@ -252,14 +305,16 @@ class StateGroup(object):
 
     @classmethod
     def get_name(cls):
-        """
+        '''
         The name of the state group is given by its classname
-        """
+        '''
         return cls.__name__
 
 
 class StateTransition(object):
-    """ Base class for a state transitions """
+    '''
+    Base class for a state transitions
+    '''
     __metaclass__ = StateTransitionMeta
 
     #: When a transition has been defined as public, is meant to be seen
@@ -267,20 +322,22 @@ class StateTransition(object):
     public = False
 
     def has_permission(cls, instance, user):
-        """
+        '''
         Check whether this user is allowed to execute this state transition on
         this object. You can override this function for every StateTransition.
-        """
+        '''
         return user.is_superuser
         # By default, only superusers are allowed to execute this transition.
         # Note that this is the only permission checking for the POST views.
 
     def validate(cls, instance):
-        """
-        Validate whether this object is valid to make this state transition.
-        Yields a list of TransitionValidationError. You can override this
-        function for every StateTransition.
-        """
+        '''
+        Validates whether this object is valid to make this state transition.
+
+        Yields a list of
+        :class:`~states2.exceptions.TransitionValidationError`. You can
+        override this function for every StateTransition.
+        '''
         if False:
             yield TransitionValidationError('Example error')
         # Don't use the 'raise'-statement in here, just yield all the errors.
@@ -288,17 +345,17 @@ class StateTransition(object):
         # yield TransitionValidationError("Another error ....")
 
     def handler(cls, instance, user):
-        """
+        '''
         Override this method if some specific actions need
         to be executed during this state transition.
-        """
+        '''
         pass
 
     @classmethod
     def get_name(cls):
-        """
+        '''
         The name of the state transition is always given by its classname
-        """
+        '''
         return cls.__name__
 
     @property
