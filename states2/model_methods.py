@@ -12,7 +12,7 @@ def get_STATE_transitions(self, field='state'):
     '''
     Return state transitions log model.
 
-    :param str field: the name of the ``StateField``
+    :param str field: the name of the :class:`~states2.fields.StateField`
     '''
     if getattr(self, '_%s_log_model' % field, None):
         # Similar to: _state_log_model.objects.filter(on=self)
@@ -27,7 +27,7 @@ def get_public_STATE_transitions(self, field='state'):
     Return the transitions which are meant to be seen by the customer. (The
     admin on the other hand should be able to see everything.)
 
-    :param str field: the name of the ``StateField``
+    :param str field: the name of the :class:`~states2.fields.StateField`
     '''
     if getattr(self, '_%s_log_model' % field, None):
         transitions = getattr(self, 'get_%s_transitions' % field)
@@ -40,7 +40,7 @@ def get_STATE_machine(self, field='state', machine=None):
     '''
     Get the machine
 
-    :param str field: the name of the ``StateField``
+    :param str field: the name of the :class:`~states2.fields.StateField`
     :param states2.machine.StateMachine machine: the state machine, default
         ``None``
     '''
@@ -51,7 +51,7 @@ def get_STATE_info(self, field='state', machine=None):
     '''
     Get the state definition from the machine
 
-    :param str field: the name of the ``StateField``
+    :param str field: the name of the :class:`~states2.fields.StateField`
     :param states2.machine.StateMachine machine: the state machine, default
         ``None``
     '''
