@@ -10,7 +10,7 @@ from states2.machine import StateMachine, StateDefinition, StateTransition
 
 
 def _create_state_log_model(state_model, field_name, machine):
-    """
+    '''
     Create a new model for logging the state transitions.
 
     :param django.db.models.Model state_model: the model that has the
@@ -18,10 +18,15 @@ def _create_state_log_model(state_model, field_name, machine):
     :param str field_name: the field name of the
         :class:`~states2.fields.StateField` on the model
     :param states2.machine.StateMachine machine: the state machine that's used
-    """
+    '''
     class StateTransitionMachine(StateMachine):
-        # We don't need logging of state transitions in a state transition log entry,
-        # as this would cause eternal, recursively nested state transition models.
+        '''
+        A :class:`~states2.machine.StateMachine` for log entries (depending on
+        what happens).
+        '''
+        # We don't need logging of state transitions in a state transition log
+        # entry, as this would cause eternal, recursively nested state
+        # transition models.
         log_transitions = False
 
         class transition_initiated(StateDefinition):
@@ -29,7 +34,7 @@ def _create_state_log_model(state_model, field_name, machine):
             initial = True
 
         class transition_started(StateDefinition):
-            description = _('State transition initiated')
+            description = _('State transition started')
 
         class transition_failed(StateDefinition):
             description = _('State transition failed')
@@ -53,10 +58,10 @@ def _create_state_log_model(state_model, field_name, machine):
             description = _('Mark state transition as failed')
 
     class _StateTransitionMeta(ModelBase):
-        """
-        Make _StateTransition act like it has another name,
-        and was defined in another model.
-        """
+        '''
+        Make :class:`_StateTransition` act like it has another name and was
+        defined in another model.
+        '''
         def __new__(c, name, bases, attrs):
             if '__unicode__' in attrs:
                 old_unicode = attrs['__unicode__']
@@ -75,19 +80,25 @@ def _create_state_log_model(state_model, field_name, machine):
     get_state_choices = machine.get_state_choices
 
     class _StateTransition(models.Model):
-        """
-        State transitions log entry.
-        """
+        '''
+        The log entries for :class:`~states2.machine.StateTransition`.
+        '''
         __metaclass__ = _StateTransitionMeta
 
-        state = StateField(max_length=64, default='0', verbose_name=_('state id'), machine=StateTransitionMachine)
+        state = StateField(max_length=64, default='0',
+                           verbose_name=_('state id'),
+                           machine=StateTransitionMachine)
 
-        from_state = models.CharField(max_length=32, choices=get_state_choices())
+        from_state = models.CharField(max_length=32,
+                                      choices=get_state_choices())
         to_state = models.CharField(max_length=32, choices=get_state_choices())
         user = models.ForeignKey(User, blank=True, null=True)
         serialized_kwargs = models.TextField(blank=True)
 
-        start_time = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=_('transition started at'))
+        start_time = models.DateTimeField(
+            auto_now_add=True, db_index=True,
+            verbose_name=_('transition started at')
+        )
         on = models.ForeignKey(state_model, related_name='all_transitions')
 
         class Meta:
@@ -95,32 +106,60 @@ def _create_state_log_model(state_model, field_name, machine):
 
         @property
         def kwargs(self):
+            '''
+            The ``kwargs`` that were used when calling the state transition.
+            '''
             if not self.serialized_kwargs:
                 return {}
             return json.loads(self.serialized_kwargs)
 
         @property
         def completed(self):
+            '''
+            Was the transition completed?
+            '''
             return self.state == 'transition_completed'
 
         @property
         def state_transition_definition(self):
-            return machine.get_transition_from_states(self.from_state, self.to_state)
+            '''
+            Gets the :class:`states2.machine.StateTransition` that was used.
+            '''
+            return machine.get_transition_from_states(self.from_state,
+                                                      self.to_state)
 
         @property
         def from_state_definition(self):
+            '''
+            Gets the :class:`states2.machine.StateDefinition` from which we
+            originated.
+            '''
             return machine.get_state(self.from_state)
 
         @property
         def from_state_description(self):
+            '''
+            Gets the description of the
+            :class:`states2.machine.StateDefinition` from which we were
+            originated.
+            '''
             return unicode(self.from_state_definition.description)
 
         @property
         def to_state_definition(self):
+            '''
+            Gets the :class:`states2.machine.StateDefinition` to which we
+            transitioning.
+            '''
             return machine.get_state(self.to_state)
 
         @property
         def to_state_description(self):
+            '''
+            Gets the description of the
+            :class:`states2.machine.StateDefinition` to which we were
+            transitioning.
+            '''
             return unicode(self.to_state_definition.description)
 
         def make_transition(self, transition, user=None):
@@ -132,24 +171,26 @@ def _create_state_log_model(state_model, field_name, machine):
 
         @property
         def is_public(self):
-            """
-            Return True when this state transition is defined public in the machine.
-            """
+            '''
+            Returns ``True`` when this state transition is defined public in
+            the machine.
+            '''
             return self.state_transition_definition.public
 
         @property
         def transition_description(self):
-            """
-            Return the description for this transition as defined in the
-            StateTransition declaration of the machine.
-            """
+            '''
+            Returns the description for this transition as defined in the
+            :class:`states2.machine.StateTransition` declaration of the
+            machine.
+            '''
             return unicode(self.state_transition_definition.description)
 
         def __unicode__(self):
             return '<State transition on %s at %s from "%s" to "%s">' % (
-                        state_model.__name__, self.start_time, self.from_state, self.to_state)
+                        state_model.__name__, self.start_time, self.from_state,
+                        self.to_state)
 
-    # This model will be detected by South because of the models.Model.__new__ constructor,
-    # which will register it somewhere in a global variable.
-
+    # This model will be detected by South because of the models.Model.__new__
+    # constructor, which will register it somewhere in a global variable.
     return _StateTransition
