@@ -85,14 +85,20 @@ def _create_state_log_model(state_model, field_name, machine):
         '''
         __metaclass__ = _StateTransitionMeta
 
-        state = StateField(max_length=64, default='0', verbose_name=_('state id'), machine=StateTransitionMachine)
+        state = StateField(max_length=64, default='0',
+                           verbose_name=_('state id'),
+                           machine=StateTransitionMachine)
 
-        from_state = models.CharField(max_length=32, choices=get_state_choices())
+        from_state = models.CharField(max_length=32,
+                                      choices=get_state_choices())
         to_state = models.CharField(max_length=32, choices=get_state_choices())
         user = models.ForeignKey(User, blank=True, null=True)
         serialized_kwargs = models.TextField(blank=True)
 
-        start_time = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name=_('transition started at'))
+        start_time = models.DateTimeField(
+            auto_now_add=True, db_index=True,
+            verbose_name=_('transition started at')
+        )
         on = models.ForeignKey(state_model, related_name='all_transitions')
 
         class Meta:
@@ -119,7 +125,8 @@ def _create_state_log_model(state_model, field_name, machine):
             '''
             Gets the :class:`states2.machine.StateTransition` that was used.
             '''
-            return machine.get_transition_from_states(self.from_state, self.to_state)
+            return machine.get_transition_from_states(self.from_state,
+                                                      self.to_state)
 
         @property
         def from_state_definition(self):
@@ -181,10 +188,8 @@ def _create_state_log_model(state_model, field_name, machine):
 
         def __unicode__(self):
             return '<State transition on %s at %s from "%s" to "%s">' % (
-                        state_model.__name__, self.start_time, self.from_state, self.to_state)
-
-    # This model will be detected by South because of the models.Model.__new__ constructor,
-    # which will register it somewhere in a global variable.
+                        state_model.__name__, self.start_time, self.from_state,
+                        self.to_state)
 
     # This model will be detected by South because of the models.Model.__new__
     # constructor, which will register it somewhere in a global variable.
