@@ -5,6 +5,7 @@ django-states2 documentation!
    :maxdepth: 2
 
    readme
+   changelog
 
 Internal API
 ------------
@@ -28,4 +29,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
