@@ -34,7 +34,7 @@ def _create_state_log_model(state_model, field_name, machine):
             initial = True
 
         class transition_started(StateDefinition):
-            description = _('State transition initiated')
+            description = _('State transition started')
 
         class transition_failed(StateDefinition):
             description = _('State transition failed')
