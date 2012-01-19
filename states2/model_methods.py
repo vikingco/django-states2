@@ -10,7 +10,7 @@ import django.dispatch
 
 def get_STATE_transitions(self, field='state'):
     '''
-    Return state transitions log model.
+    Returns state transitions logs.
 
     :param str field: the name of the :class:`~states2.fields.StateField`
     '''
@@ -24,8 +24,8 @@ def get_STATE_transitions(self, field='state'):
 
 def get_public_STATE_transitions(self, field='state'):
     '''
-    Return the transitions which are meant to be seen by the customer. (The
-    admin on the other hand should be able to see everything.)
+    Returns the transitions which are meant to be seen by the customer.
+    The admin on the other hand should be able to see everything.
 
     :param str field: the name of the :class:`~states2.fields.StateField`
     '''
@@ -38,7 +38,7 @@ def get_public_STATE_transitions(self, field='state'):
 
 def get_STATE_machine(self, field='state', machine=None):
     '''
-    Get the machine
+    Gets the machine
 
     :param str field: the name of the :class:`~states2.fields.StateField`
     :param states2.machine.StateMachine machine: the state machine, default
@@ -49,7 +49,7 @@ def get_STATE_machine(self, field='state', machine=None):
 
 def get_STATE_info(self, field='state', machine=None):
     '''
-    Get the state definition from the machine
+    Gets the state definition from the machine
 
     :param str field: the name of the :class:`~states2.fields.StateField`
     :param states2.machine.StateMachine machine: the state machine, default
@@ -99,10 +99,14 @@ def get_STATE_info(self, field='state', machine=None):
             '''
             Check whether we could execute this transition.
 
-            Returns ``True`` when we expect this transition to be executed
-            succesfully.
-            Raises an ``Exception`` when this transition is impossible or not
-            allowed.
+            :param str transition: the transition name
+            :param user: the user that will execute the transition. Used for
+                permission checking
+            :type: :class:`django.contrib.auth.models.User` or ``None``
+
+            :returns:``True`` when we expect this transition to be executed
+                succesfully. It will raise an ``Exception`` when this
+                transition is impossible or not allowed.
             '''
             # Transition name should be known
             if not machine.has_transition(transition):
@@ -126,8 +130,14 @@ def get_STATE_info(self, field='state', machine=None):
 
         def make_transition(si_self, transition, user=None, **kwargs):
             '''
-            Execute state transition.
-            Provide ``user`` to do permission checking
+            Executes state transition.
+
+            :param str transition: the transition name
+            :param user: the user that will execute the transition. Used for
+                permission checking
+            :type: :class:`django.contrib.auth.models.User` or ``None``
+            :param dict kwargs: the kwargs that will be passed to
+                :meth:`~states2.machine.StateTransition.handler`
             '''
             # Transition name should be known
             if not machine.has_transition(transition):
@@ -164,7 +174,8 @@ def get_STATE_info(self, field='state', machine=None):
                 before_state_execute.send(sender=self,
                                           from_state=from_state,
                                           to_state=t.to_state)
-                # First call handler (handler should still see the original state.)
+                # First call handler (handler should still see the original
+                # state.)
                 t.handler(self, user, **kwargs)
 
                 # Then set new state and save.

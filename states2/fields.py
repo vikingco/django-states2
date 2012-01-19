@@ -29,6 +29,17 @@ class StateField(models.CharField):
         super(StateField, self).__init__(**kwargs)
 
     def contribute_to_class(self, cls, name):
+        '''
+        Adds methods to the :class:`~django.db.models.Model`.
+
+        The extra methods will be added for each :class:`StateField` in a
+        model:
+
+        - :meth:`~states2.model_methods.get_STATE_transitions`
+        - :meth:`~states2.model_methods.get_public_STATE_transitions`
+        - :meth:`~states2.model_methods.get_STATE_info`
+        - :meth:`~states2.model_methods.get_STATE_machine`
+        '''
         super(StateField, self).contribute_to_class(cls, name)
 
         # Set choice options (for combo box)
