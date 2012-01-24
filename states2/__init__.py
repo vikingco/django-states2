@@ -6,7 +6,7 @@ State transitions can be logged for objects.
 '''
 
 #: The version list
-VERSION = (1, 4, 3)
+VERSION = (1, 4, 4)
 
 
 def get_version():
