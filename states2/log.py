@@ -53,7 +53,7 @@ def _create_state_log_model(state_model, field_name, machine):
             description = _('Complete state transition')
 
         class fail(StateTransition):
-            from_state = ('transition_initiated', 'transition_started')
+            from_states = ('transition_initiated', 'transition_started')
             to_state = 'transition_failed'
             description = _('Mark state transition as failed')
 
