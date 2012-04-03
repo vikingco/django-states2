@@ -131,6 +131,14 @@ class StateModel(models.Model):
         '''
         return self.get_state_info().possible_transitions()
 
+    @property
+    def in_group(self):
+      '''
+      In what groups is this state? It's a dictionary that will return
+      ``True`` for the state groups that this state is in.
+      '''
+      return self.get_state_info().in_group
+
     @classmethod
     def get_state_model_name(self):
         '''
