@@ -153,7 +153,7 @@ def get_STATE_info(self, field='state', machine=None):
                 try:
                     serialized_kwargs = json.dumps(kwargs)
                 except TypeError:
-                    serialized_kwargs = None
+                    serialized_kwargs = json.dumps(None)
 
                 transition_log = _state_log_model.objects.create(
                                 on=self,
