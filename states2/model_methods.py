@@ -148,12 +148,19 @@ def get_STATE_info(self, field='state', machine=None):
 
             # Start transition log
             if _state_log_model:
+                # Try to serialize kwargs, for the log. Save null
+                # when it's not serializable.
+                try:
+                    serialized_kwargs = json.dumps(kwargs)
+                except TypeError:
+                    serialized_kwargs = None
+
                 transition_log = _state_log_model.objects.create(
                                 on=self,
                                 from_state=getattr(self, field),
                                 to_state=t.to_state,
                                 user=user,
-                                serialized_kwargs=json.dumps(kwargs)
+                                serialized_kwargs=serialized_kwargs,
                                 )
 
             # Test transition (access/execution validation)
