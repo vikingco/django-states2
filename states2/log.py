@@ -99,7 +99,7 @@ def _create_state_log_model(state_model, field_name, machine):
             auto_now_add=True, db_index=True,
             verbose_name=_('transition started at')
         )
-        on = models.ForeignKey(state_model, related_name='all_transitions')
+        on = models.ForeignKey(state_model, related_name=('%s_history' % field_name))
 
         class Meta:
             verbose_name = _('%s transition') % state_model._meta.verbose_name
