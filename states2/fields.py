@@ -86,7 +86,7 @@ class StateField(models.CharField):
             created = not obj.id
 
             # Validate whether this is an existing state
-            if kwargs.pop('no_state_validation', False):
+            if kwargs.pop('no_state_validation', True):
                 state = None
             else:
                 # Can raise UnknownState
