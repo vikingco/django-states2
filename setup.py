@@ -8,7 +8,7 @@ setup(
     url='https://github.com/citylive/django-states2',
     license='BSD',
     description="State machine for django models",
-    long_description=open('README.rst', 'r').read(),
+    long_description=open('README.md', 'r').read(),
     author='Jonathan Slenders, Gert van Gool, City Live nv',
     packages=find_packages('.'),
     #package_dir={'': 'templates/*'},
