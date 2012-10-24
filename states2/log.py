@@ -104,6 +104,11 @@ def _create_state_log_model(state_model, field_name, machine):
         class Meta:
             verbose_name = _('%s transition') % state_model._meta.verbose_name
 
+            # When the state class has been given an app_label, use
+            # use this app_label as well for this StateTransition model.
+            if hasattr(state_model._meta, 'app_label'):
+                app_label = state_model._meta.app_label
+
         @property
         def kwargs(self):
             '''
