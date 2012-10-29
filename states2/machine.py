@@ -149,13 +149,13 @@ class StateDefinitionMeta(type):
         Validate state definition
         '''
         if bases != (object,):
-            if name.lower() != name:
+            if name.lower() != name and not attrs.get('abstract', False):
                 raise Exception('Please use lowercase names for state definitions (instead of %s)' % name)
-            if not 'description' in attrs:
+            if not 'description' in attrs and not attrs.get('abstract', False):
                 raise Exception('Please give a description to this state definition')
 
         if 'handler' in attrs and len(attrs['handler'].func_code.co_varnames) < 2:
-            raise Exception('StateDefinition handler needs at least twoarguments')
+            raise Exception('StateDefinition handler needs at least two arguments')
 
         # Turn `handler` into classmethod
         if 'handler' in attrs:
