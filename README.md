@@ -104,7 +104,7 @@ p.state_history.all()[0].state
 p.possible_transitions
 
 # Which can be used like this..
-[x for x in p.possible_transitions]
+[x.get_name() for x in p.possible_transitions]
 ```
 
 For better transition control, override:

@@ -207,7 +207,7 @@ def _create_state_log_model(state_model, field_name, machine):
             return unicode(self.state_transition_definition.description)
 
         def __unicode__(self):
-            return '<State transition on %s at %s from "%s" to "%s">'.format(
+            return '<State transition on {0} at {1} from "{2}" to "{3}">'.format(
                 state_model.__name__, self.start_time, self.from_state, self.to_state)
 
     # This model will be detected by South because of the models.Model.__new__
