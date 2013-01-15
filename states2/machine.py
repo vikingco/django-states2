@@ -7,7 +7,7 @@ from collections import defaultdict
 import logging
 
 from states2.exceptions import (TransitionNotFound, TransitionValidationError,
-                                UnknownState, TransitionException)
+                                UnknownState, TransitionException, MachineDefinitionException)
 
 
 logger = logging.getLogger(__name__)
@@ -283,7 +283,6 @@ class StateDefinition(object):
     # define at least one state where ``initial=True``
     initial = False
 
-    @classmethod
     def handler(cls, instance):
         """
         Override this method if some specific actions need
