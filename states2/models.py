@@ -13,18 +13,14 @@ Base models for every State.
 
 __all__ = ('StateMachine', 'StateDefinition', 'StateTransition', 'StateModel')
 
-from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.base import ModelBase
 from django.utils.translation import ugettext_lazy as _
-from functools import wraps
 
 from states2.machine import StateMachine, StateDefinition, StateTransition
 from states2.exceptions import States2Exception
 from states2.fields import StateField
 
-import copy
-import datetime
 
 # =======================[ State ]=====================
 class StateModelBase(ModelBase):
