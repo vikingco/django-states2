@@ -83,9 +83,19 @@ class DjangoStateClass(StateModel):
 
 class StateTestCase(TransactionTestCase):
     """This will test out the non-logging side of things"""
+
     def setUp(self):
         self.superuser = User.objects.create_superuser(
             username='super', email="super@h.us", password="pass")
+
+    def test_initial_state(self):
+        """Full end to end test"""
+        testmachine = DjangoStateClass(field1=100, field2="LALALALALA")
+        testmachine.save()
+        self.assertEqual(testmachine.state, 'start')
+        self.assertTrue(testmachine.is_initial_state)
+        testmachine.make_transition('start_step_1', user=self.superuser)
+        self.assertFalse(testmachine.is_initial_state)
 
     def test_end_to_end(self):
         """Full end to end test"""
@@ -107,7 +117,19 @@ class StateTestCase(TransactionTestCase):
         self.assertEqual(testmachine.state, 'step_2_fail')
         self.assertEqual(testmachine.state_description, 'Failure State')
         possible = set([x.get_name() for x in testmachine.possible_transitions])
-        self.assertEqual(possible, {'start_step_1'})
+        self.assertEqual(possible, {'step_2_fail_step_1'})
+        # Shift to a failure
+        testmachine.make_transition('step_2_fail_step_1', user=self.superuser)
+        self.assertEqual(testmachine.state, 'step_1')
+        self.assertEqual(testmachine.state_description, 'Normal State')
+        possible = set([x.get_name() for x in testmachine.possible_transitions])
+        self.assertEqual(possible, {'step_1_step_3', 'step_1_step_2_fail'})
+        # Shift to a completed
+        testmachine.make_transition('step_1_step_3', user=self.superuser)
+        self.assertEqual(testmachine.state, 'step_3')
+        self.assertEqual(testmachine.state_description, 'Completed')
+        possible = [x.get_name() for x in testmachine.possible_transitions]
+        self.assertEqual(len(possible), 0)
 
     def test_invalid_user(self):
         """Verify permissions for a user"""
