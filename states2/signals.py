@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+"""Signals"""
+
 import django.dispatch
 
 #: Signal that is sent before a state transition is executed

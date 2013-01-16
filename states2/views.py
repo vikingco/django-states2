@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+"""Views"""
+
 from django.db.models import get_model
 from django.http import (HttpResponseRedirect, HttpResponseForbidden,
                          HttpResponse,)

@@ -96,12 +96,14 @@ p.state_transitions.all()
 # The user who triggered this transition
 p.state_transitions.all()[0].user
 
-# Will return 'complete' or 'failed', depending on the state of this
-# state transition.
+# Will return 'complete' or 'failed', depending on the state of this state transition.
 p.state_transitions.all()[0].state
 
 # Returns an iterator of possible transitions for this purchase.
 p.possible_transitions
+
+# Which can be used like this..
+[x.get_name() for x in p.possible_transitions]
 ```
 
 For better transition control, override:
