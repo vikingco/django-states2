@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+"""Fields used"""
+
 __all__ = ('StateField',)
 
 from django.db import models
@@ -10,7 +13,7 @@ from states2.model_methods import (get_STATE_transitions,
 
 
 class StateField(models.CharField):
-    '''
+    """
     Add state information to a model.
 
     This will add extra methods to the model.
@@ -18,7 +21,7 @@ class StateField(models.CharField):
     Usage::
 
         status = StateField(machine=PowerState)
-    '''
+    """
     def __init__(self, **kwargs):
         # State machine parameter. (Fall back to default machine.
         # e.g. when South is creating an instance.)
@@ -29,7 +32,7 @@ class StateField(models.CharField):
         super(StateField, self).__init__(**kwargs)
 
     def contribute_to_class(self, cls, name):
-        '''
+        """
         Adds methods to the :class:`~django.db.models.Model`.
 
         The extra methods will be added for each :class:`StateField` in a
@@ -39,7 +42,7 @@ class StateField(models.CharField):
         - :meth:`~states2.model_methods.get_public_STATE_transitions`
         - :meth:`~states2.model_methods.get_STATE_info`
         - :meth:`~states2.model_methods.get_STATE_machine`
-        '''
+        """
         super(StateField, self).contribute_to_class(cls, name)
 
         # Set choice options (for combo box)
@@ -68,7 +71,7 @@ class StateField(models.CharField):
         models.signals.class_prepared.connect(self.finalize, sender=cls)
 
     def finalize(self, sender, **kwargs):
-        '''
+        """
         Override ``save``, call initial state handler on save.
 
         When ``.save(no_state_validation=True)`` has been used, the state won't
@@ -79,7 +82,7 @@ class StateField(models.CharField):
         Note that we wrap ``save`` only after the ``class_prepared`` signal
         has been sent, it won't work otherwise when the model has a
         custom ``save`` method.
-        '''
+        """
         real_save = sender.save
 
         def new_save(obj, *args, **kwargs):

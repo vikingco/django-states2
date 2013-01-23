@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""Declared Exceptions"""
+
+
 class States2Exception(Exception):
     pass
 

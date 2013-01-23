@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+"""Urls"""
+
 from django.conf.urls.defaults import patterns, url
 from states2.views import make_state_transition
 
