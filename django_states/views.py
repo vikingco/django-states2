@@ -6,7 +6,7 @@ from django.http import (HttpResponseRedirect, HttpResponseForbidden,
                          HttpResponse,)
 from django.shortcuts import get_object_or_404
 
-from states2.exceptions import PermissionDenied
+from django_states.exceptions import PermissionDenied
 
 
 def make_state_transition(request):

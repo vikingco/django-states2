@@ -4,9 +4,9 @@ from django.contrib.auth.models import User
 
 from django.db import models
 from django.test import TransactionTestCase
-from states2.exceptions import PermissionDenied
-from states2.machine import StateMachine, StateDefinition, StateTransition
-from states2.models import StateModel
+from django_states.exceptions import PermissionDenied
+from django_states.machine import StateMachine, StateDefinition, StateTransition
+from django_states.models import StateModel
 
 
 class TestMachine(StateMachine):

@@ -7,9 +7,9 @@ from django.db.models.base import ModelBase
 from django.utils.translation import ugettext_lazy as _
 from django.utils import simplejson as json
 
-from states2 import conf
-from states2.fields import StateField
-from states2.machine import StateMachine, StateDefinition, StateTransition
+from django_states import conf
+from django_states.fields import StateField
+from django_states.machine import StateMachine, StateDefinition, StateTransition
 
 
 def _create_state_log_model(state_model, field_name, machine):

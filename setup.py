@@ -1,15 +1,15 @@
 from setuptools import setup, find_packages
-import states2
+import django_states
 
 
 setup(
-    name="django-states2",
-    version=states2.__version__,
+    name="django-states",
+    version=django_states.__version__,
     url='https://github.com/citylive/django-states2',
     license='BSD',
     description="State machine for django models",
     long_description=open('README.md', 'r').read(),
-    author='Jonathan Slenders, Gert van Gool, City Live nv',
+    author='Jonathan Slenders, Gert van Gool, Maarten Timmerman, Steven (rh0dium)',
     packages=find_packages('.'),
     #package_dir={'': 'templates/*'},
     classifiers=[

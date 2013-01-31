@@ -17,9 +17,9 @@ from django.db import models
 from django.db.models.base import ModelBase
 from django.utils.translation import ugettext_lazy as _
 
-from states2.machine import StateMachine, StateDefinition, StateTransition
-from states2.exceptions import States2Exception
-from states2.fields import StateField
+from django_states.machine import StateMachine, StateDefinition, StateTransition
+from django_states.exceptions import States2Exception
+from django_states.fields import StateField
 
 
 # =======================[ State ]=====================
