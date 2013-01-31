@@ -6,6 +6,7 @@ Authors:
 * Jonathan Slenders, City Live nv
 * Gert van Gool, City Live nv
 * Maarten Timmerman, City Live nv
+* Steven (rh0dium), Pivotal Engergy Solutions, Phoenix Arizona
 
 Description
 -----------
@@ -14,6 +15,12 @@ State engine for django models. Define a state graph for a model and
 remember the state of each object.  State transitions can be logged for
 objects.
 
+Installation
+-------------
+
+```
+pip install django-states
+```
 
 Usage example
 -------------
@@ -25,8 +32,8 @@ It's basically these two things:
 
 
 ```python
-from states2.models import StateMachine, StateDefinition, StateTransition
-from states2.models import StateModel
+from django_states.models import StateMachine, StateDefinition, StateTransition
+from django_states.models import StateModel
 
 class PurchaseStateMachine(StateMachine):
    log_transitions = True

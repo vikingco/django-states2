@@ -5,9 +5,9 @@ __all__ = ('StateField',)
 
 from django.db import models
 from django.utils.functional import curry
-from states2.machine import StateMachine
+from django_states.machine import StateMachine
 
-from states2.model_methods import (get_STATE_transitions,
+from django_states.model_methods import (get_STATE_transitions,
                                    get_public_STATE_transitions,
                                    get_STATE_info, get_STATE_machine)
 
@@ -51,7 +51,7 @@ class StateField(models.CharField):
 
         # do we need logging?
         if self._machine.log_transitions:
-            from states2.log import _create_state_log_model
+            from django_states.log import _create_state_log_model
             log_model = _create_state_log_model(cls, name, self._machine)
         else:
             log_model = None
