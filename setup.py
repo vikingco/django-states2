@@ -10,6 +10,7 @@ setup(
     description="State machine for django models",
     long_description=open('README.md', 'r').read(),
     author='Jonathan Slenders, Gert van Gool, Maarten Timmerman, Steven (rh0dium)',
+    author_email='jonathan.slenders@mobilevikings.com',
     packages=find_packages('.'),
     #package_dir={'': 'templates/*'},
     classifiers=[
