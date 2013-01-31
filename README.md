@@ -1,5 +1,5 @@
-Django States (v2)
-=================
+Django States
+=============
 
 Authors:
 
