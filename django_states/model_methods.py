@@ -48,6 +48,21 @@ def get_STATE_machine(self, field='state', machine=None):
     return machine
 
 
+def get_STATE_display(self, field='state', machine=None):
+    """
+    Gets the name of the current state from the machine
+    """
+
+    if machine is None:
+        return None
+    assert isinstance(machine, StateMachineMeta), "Machine must be a valid StateMachine"
+
+    si = machine.get_state(getattr(self, field))
+    if hasattr(si, 'name'):
+        return si.name
+    return getattr(self, field)
+
+
 def get_STATE_info(self, field='state', machine=None):
     """
     Gets the state definition from the machine
