@@ -17,14 +17,14 @@ def _create_state_log_model(state_model, field_name, machine):
     Create a new model for logging the state transitions.
 
     :param django.db.models.Model state_model: the model that has the
-        :class:`~states2.fields.StateField`
+        :class:`~django_states.fields.StateField`
     :param str field_name: the field name of the
-        :class:`~states2.fields.StateField` on the model
-    :param states2.machine.StateMachine machine: the state machine that's used
+        :class:`~django_states.fields.StateField` on the model
+    :param django_states.machine.StateMachine machine: the state machine that's used
     """
     class StateTransitionMachine(StateMachine):
         """
-        A :class:`~states2.machine.StateMachine` for log entries (depending on
+        A :class:`~django_states.machine.StateMachine` for log entries (depending on
         what happens).
         """
         # We don't need logging of state transitions in a state transition log
@@ -94,7 +94,7 @@ def _create_state_log_model(state_model, field_name, machine):
 
     class _StateTransition(models.Model):
         """
-        The log entries for :class:`~states2.machine.StateTransition`.
+        The log entries for :class:`~django_states.machine.StateTransition`.
         """
         __metaclass__ = _StateTransitionMeta
 
@@ -142,14 +142,14 @@ def _create_state_log_model(state_model, field_name, machine):
         @property
         def state_transition_definition(self):
             """
-            Gets the :class:`states2.machine.StateTransition` that was used.
+            Gets the :class:`django_states.machine.StateTransition` that was used.
             """
             return machine.get_transition_from_states(self.from_state, self.to_state)
 
         @property
         def from_state_definition(self):
             """
-            Gets the :class:`states2.machine.StateDefinition` from which we
+            Gets the :class:`django_states.machine.StateDefinition` from which we
             originated.
             """
             return machine.get_state(self.from_state)
@@ -158,7 +158,7 @@ def _create_state_log_model(state_model, field_name, machine):
         def from_state_description(self):
             """
             Gets the description of the
-            :class:`states2.machine.StateDefinition` from which we were
+            :class:`django_states.machine.StateDefinition` from which we were
             originated.
             """
             return unicode(self.from_state_definition.description)
@@ -166,7 +166,7 @@ def _create_state_log_model(state_model, field_name, machine):
         @property
         def to_state_definition(self):
             """
-            Gets the :class:`states2.machine.StateDefinition` to which we
+            Gets the :class:`django_states.machine.StateDefinition` to which we
             transitioning.
             """
             return machine.get_state(self.to_state)
@@ -175,7 +175,7 @@ def _create_state_log_model(state_model, field_name, machine):
         def to_state_description(self):
             """
             Gets the description of the
-            :class:`states2.machine.StateDefinition` to which we were
+            :class:`django_states.machine.StateDefinition` to which we were
             transitioning.
             """
             return unicode(self.to_state_definition.description)
@@ -201,7 +201,7 @@ def _create_state_log_model(state_model, field_name, machine):
         def transition_description(self):
             """
             Returns the description for this transition as defined in the
-            :class:`states2.machine.StateTransition` declaration of the
+            :class:`django_states.machine.StateTransition` declaration of the
             machine.
             """
             return unicode(self.state_transition_definition.description)

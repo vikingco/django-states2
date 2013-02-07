@@ -13,7 +13,7 @@ def get_STATE_transitions(self, field='state'):
     """
     Returns state transitions logs.
 
-    :param str field: the name of the :class:`~states2.fields.StateField`
+    :param str field: the name of the :class:`~django_states.fields.StateField`
     """
     if getattr(self, '_%s_log_model' % field, None):
         LogModel = getattr(self, '_%s_log_model' % field, None)
@@ -28,7 +28,7 @@ def get_public_STATE_transitions(self, field='state'):
     Returns the transitions which are meant to be seen by the customer.
     The admin on the other hand should be able to see everything.
 
-    :param str field: the name of the :class:`~states2.fields.StateField`
+    :param str field: the name of the :class:`~django_states.fields.StateField`
     """
     if getattr(self, '_%s_log_model' % field, None):
         transitions = getattr(self, 'get_%s_transitions' % field)
@@ -41,8 +41,8 @@ def get_STATE_machine(self, field='state', machine=None):
     """
     Gets the machine
 
-    :param str field: the name of the :class:`~states2.fields.StateField`
-    :param states2.machine.StateMachine machine: the state machine, default
+    :param str field: the name of the :class:`~django_states.fields.StateField`
+    :param django_states.machine.StateMachine machine: the state machine, default
         ``None``
     """
     return machine
@@ -52,8 +52,8 @@ def get_STATE_info(self, field='state', machine=None):
     """
     Gets the state definition from the machine
 
-    :param str field: the name of the :class:`~states2.fields.StateField`
-    :param states2.machine.StateMachine machine: the state machine, default
+    :param str field: the name of the :class:`~django_states.fields.StateField`
+    :param django_states.machine.StateMachine machine: the state machine, default
         ``None``
     """
     if machine is None:
@@ -139,7 +139,7 @@ def get_STATE_info(self, field='state', machine=None):
                 permission checking
             :type: :class:`django.contrib.auth.models.User` or ``None``
             :param dict kwargs: the kwargs that will be passed to
-                :meth:`~states2.machine.StateTransition.handler`
+                :meth:`~django_states.machine.StateTransition.handler`
             """
             # Transition name should be known
             if not machine.has_transition(transition):

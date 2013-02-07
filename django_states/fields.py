@@ -38,10 +38,10 @@ class StateField(models.CharField):
         The extra methods will be added for each :class:`StateField` in a
         model:
 
-        - :meth:`~states2.model_methods.get_STATE_transitions`
-        - :meth:`~states2.model_methods.get_public_STATE_transitions`
-        - :meth:`~states2.model_methods.get_STATE_info`
-        - :meth:`~states2.model_methods.get_STATE_machine`
+        - :meth:`~django_states.model_methods.get_STATE_transitions`
+        - :meth:`~django_states.model_methods.get_public_STATE_transitions`
+        - :meth:`~django_states.model_methods.get_STATE_info`
+        - :meth:`~django_states.model_methods.get_STATE_machine`
         """
         super(StateField, self).contribute_to_class(cls, name)
 

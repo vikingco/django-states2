@@ -104,7 +104,7 @@ class StateMachineMeta(type):
         :param str state_name: the state name
 
         :returns: a :class:`StateDefinition` or raises
-            a :class:`~states2.exceptions.UnknownState`
+            a :class:`~django_states.exceptions.UnknownState`
         """
         try:
             return self.states[state_name]
@@ -119,7 +119,7 @@ class StateMachineMeta(type):
         :param str to_state: the to state
 
         :returns: a :class:`StateTransition` or raises
-            a :class:`~states2.exceptions.TransitionNotFound`
+            a :class:`~django_states.exceptions.TransitionNotFound`
         """
         for t in self.transitions.values():
             if from_state in t.from_states and t.to_state == to_state:
@@ -339,7 +339,7 @@ class StateTransition(object):
         Validates whether this object is valid to make this state transition.
 
         Yields a list of
-        :class:`~states2.exceptions.TransitionValidationError`. You can
+        :class:`~django_states.exceptions.TransitionValidationError`. You can
         override this function for every StateTransition.
         """
         if False:

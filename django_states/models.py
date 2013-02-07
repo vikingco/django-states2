@@ -56,7 +56,7 @@ class StateModel(models.Model):
     """
     Every model which needs state can inherit this abstract model.
 
-    This will dynamically add a :class:`~states2.fields.StateField` named
+    This will dynamically add a :class:`~django_states.fields.StateField` named
     ``state``.
     """
     __metaclass__ = StateModelBase
@@ -66,7 +66,7 @@ class StateModel(models.Model):
         Example machine definition.
 
         State machines should override this by creating a new machine,
-        inherited directly from :class:`~states2.machine.StateMachine`.
+        inherited directly from :class:`~django_states.machine.StateMachine`.
         """
         #: True when we should log all transitions
         log_transitions = False
@@ -93,14 +93,14 @@ class StateModel(models.Model):
     @property
     def state_transitions(self):
         """
-        Wraps :meth:`states2.model_methods.get_STATE_transitions`
+        Wraps :meth:`django_states.model_methods.get_STATE_transitions`
         """
         return self.get_state_transitions()
 
     @property
     def public_transitions(self):
         """
-        Wraps :meth:`states2.model_methods.get_public_STATE_transitions`
+        Wraps :meth:`django_states.model_methods.get_public_STATE_transitions`
         """
         return self.get_public_state_transitions()
 
@@ -176,7 +176,7 @@ class StateModel(models.Model):
             permission checking
         :type: :class:`django.contrib.auth.models.User` or ``None``
         :param dict kwargs: the kwargs that will be passed to
-            :meth:`~states2.machine.StateTransition.handler`
+            :meth:`~django_states.machine.StateTransition.handler`
         """
         return self.get_state_info().make_transition(transition, user=user, **kwargs)
 
