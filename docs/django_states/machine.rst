@@ -1,7 +1,7 @@
-``states2.machine``
+``django_states.machine``
 ===================
 
-.. automodule:: states2.machine
+.. automodule:: django_states.machine
    :members:
    :undoc-members:
    :private-members:

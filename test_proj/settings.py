@@ -21,7 +21,7 @@ path_to = lambda * x: os.path.join(ROOT, *x)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': path_to('states2_test.sqlite'),
+        'NAME': path_to('django_states_test.sqlite'),
         'USER': '',
         'PASSWORD': '',
         'HOST': '',
@@ -126,7 +126,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
-    'states2'
+    'django_states'
 )
 
 # A sample logging configuration. The only tangible logging

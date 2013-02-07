@@ -1,7 +1,7 @@
-``states2.conf``
+``django_states.conf``
 ================
 
-.. automodule:: states2.conf
+.. automodule:: django_states.conf
    :members:
    :undoc-members:
    :private-members:

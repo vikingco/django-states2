@@ -1,7 +1,7 @@
-``states2.log``
+``django_states.log``
 ===============
 
-.. automodule:: states2.log
+.. automodule:: django_states.log
    :members:
    :undoc-members:
    :private-members:

@@ -1,7 +1,7 @@
-``states2.fields``
+``django_states.fields``
 ==================
 
-.. automodule:: states2.fields
+.. automodule:: django_states.fields
    :members:
    :undoc-members:
    :private-members:
