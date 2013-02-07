@@ -121,4 +121,4 @@ else:
             },
         ),
 
-        ], ["^states2\.fields\.StateField"])
+        ], ["^django_states\.fields\.StateField"])
