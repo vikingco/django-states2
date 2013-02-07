@@ -9,7 +9,8 @@ from django_states.machine import StateMachine
 
 from django_states.model_methods import (get_STATE_transitions,
                                    get_public_STATE_transitions,
-                                   get_STATE_info, get_STATE_machine)
+                                   get_STATE_info, get_STATE_machine,
+                                   get_STATE_display)
 
 
 class StateField(models.CharField):
@@ -59,6 +60,8 @@ class StateField(models.CharField):
         setattr(cls, '_%s_log_model' % name, log_model)
 
         # adding extra methods
+        setattr(cls, 'get_%s_display' % name,
+            curry(get_STATE_display, field=name, machine=self._machine))
         setattr(cls, 'get_%s_transitions' % name,
             curry(get_STATE_transitions, field=name))
         setattr(cls, 'get_public_%s_transitions' % name,
