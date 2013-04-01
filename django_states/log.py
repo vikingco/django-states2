@@ -1,7 +1,16 @@
 # -*- coding: utf-8 -*-
 """log model"""
 
-from django.contrib.auth.models import User
+"""
+Suport for Django 1.5 custom user model. 
+"""
+try:
+    from django.contrib.auth import get_user_model
+except ImportError: # django < 1.5
+    from django.contrib.auth.models import User
+else:
+    User = get_user_model()
+
 from django.db import models
 from django.db.models.base import ModelBase
 from django.utils.translation import ugettext_lazy as _
