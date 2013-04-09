@@ -170,7 +170,7 @@ state transitions for the admin site. To support this in your model, update
 your `ModelAdmin`:
 
 ```python
-class PurchaseAdmin(admin.ModelAdmin);
+class PurchaseAdmin(admin.ModelAdmin):
     actions = Purchase.Machine.get_admin_actions()
 ```
 
@@ -178,7 +178,7 @@ If your model didn't inherit from `StateModel`, you can also specify the
 `field_name`:
 
 ```python
-class PurchaseAdmin(admin.ModelAdmin);
+class PurchaseAdmin(admin.ModelAdmin):
     actions = Purchase.Machine.get_admin_actions(field_name='purchase_state')
 ```
 
