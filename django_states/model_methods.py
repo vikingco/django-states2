@@ -93,6 +93,14 @@ def get_STATE_info(self, field='state', machine=None):
             return si.description
 
         @property
+        def initial(si_self):
+            """
+            is this the inital state?
+            """
+            si = machine.get_state(getattr(self, field))
+            return bool(si.initial)
+
+        @property
         def in_group(si_self):
             """
             In what groups is this state? It's a dictionary that will return

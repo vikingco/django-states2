@@ -3,6 +3,7 @@
 from django.contrib.auth.models import User
 
 from django.db import models
+from django.utils.translation import ugettext_lazy as _
 from django.test import TransactionTestCase
 from django_states.exceptions import PermissionDenied
 from django_states.machine import StateMachine, StateDefinition, StateTransition
@@ -57,9 +58,21 @@ class TestMachine(StateMachine):
         description = "Transition from failure back to normal"
 
 
-#class TestLogMachine(TestMachine):
-#    """Same as above but this one logs"""
-#    log_transitions = True
+class TestLogMachine(StateMachine):
+    """Same as above but this one logs"""
+    log_transitions = True 
+    
+    class start(StateDefinition):
+        description = 'start'
+        initial = True
+    
+    class end(StateDefinition):
+        description = 'end'
+    
+    class make_end(StateTransition):
+        from_state = 'start'
+        to_state = 'end'
+        description = 'From alpha to omega'
 
 # ----- Django Test Models ------
 
@@ -71,13 +84,15 @@ class DjangoStateClass(StateModel):
     Machine = TestMachine
 
 
-#class DjangoStateLogClass(models.Model):
-#    """Django Test Model implementing a Logging State Machine"""
-#    field1 = models.IntegerField()
-#    field2 = models.CharField(max_length=25)
-#    Machine = TestLogMachine
+class DjangoStateLogClass(StateModel):
+    """Django Test Model implementing a Logging State Machine"""
+    class Meta:
+        verbose_name = _('state')
+    field1 = models.IntegerField()
+    field2 = models.CharField(max_length=25)
+    Machine = TestLogMachine
 
-# ---- Tests ----
+#  ---- Tests ----
 
 
 class StateTestCase(TransactionTestCase):
@@ -95,6 +110,12 @@ class StateTestCase(TransactionTestCase):
         self.assertTrue(testmachine.is_initial_state)
         testmachine.make_transition('start_step_1', user=self.superuser)
         self.assertFalse(testmachine.is_initial_state)
+    
+    def test_machine_with_enabled_transition_log(self):
+        logmachine = DjangoStateLogClass(field1=100, field2='JOLLA')
+        logmachine.save()
+        self.assertEqual(logmachine.state, 'start')
+        logmachine.make_transition('make_end', user=self.superuser)
 
     def test_end_to_end(self):
         """Full end to end test"""
@@ -138,3 +159,4 @@ class StateTestCase(TransactionTestCase):
         testmachine.save()
         kwargs = {'transition': 'start_step_1', 'user': user}
         self.assertRaises(PermissionDenied, testmachine.make_transition, **kwargs)
+
