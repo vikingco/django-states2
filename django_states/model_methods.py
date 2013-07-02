@@ -173,6 +173,7 @@ def get_STATE_info(self, field='state', machine=None):
                 transition_log = _state_log_model.objects.create(
                     on=self, from_state=getattr(self, field), to_state=t.to_state,
                     user=user, serialized_kwargs=serialized_kwargs)
+                t.transition_log = transition_log
 
             # Test transition (access/execution validation)
             try:
