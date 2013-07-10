@@ -37,20 +37,34 @@ class Command(BaseCommand):
 
         name = unicode(Model._meta.verbose_name)
         g = Graph('state_machine_graph_%s' % model_label, False)
-        g.label = 'State Machine Graph %s' % name
+        g.label = '%s State Machine' % name
+        g.rankdir = "TB"
+        g.ranksep = "0.5"
         nodes = {}
         edges = {}
+        for state, state_machine in STATE_MACHINE.states.items():
+            label = state.capitalize()
+            if hasattr(state_machine, 'description'):
+                label = state_machine.description
+                if len(state_machine.description) > 32:
+                     label = state_machine.description[:29] + "..."
+                label += "\n (%s)" % state
 
-        for state in STATE_MACHINE.states:
-            nodes[state] = g.add_node(state,
-                                      label=state.upper(),
-                                      shape='rect',
-                                      fontname='Arial')
+            shape = 'rect'
+            color = 'lightgrey'
+            if hasattr(state_machine, 'initial') and state_machine.initial:
+                shape = 'invtrapezium'
+            if hasattr(state_machine, 'public') and state_machine.public:
+                color = 'black'
+
+            nodes[state] = g.add_node(
+                state, label=label, shape=shape, color=color, fontname='Arial')
             logger.debug('Created node for %s', state)
 
         def find(f, a):
             for i in a:
-                if f(i): return i
+                if f(i):
+                    return i
             return None
 
         for trion_name,trion in STATE_MACHINE.transitions.iteritems():
@@ -58,7 +72,7 @@ class Command(BaseCommand):
                 edge = g.add_edge(nodes[from_state], nodes[trion.to_state])
                 edge.dir = 'forward'
                 edge.arrowhead = 'normal'
-                edge.label = '\n_'.join(trion.get_name().split('_'))
+                edge.label = '\n'.join(trion.get_name().split('_'))
                 edge.fontsize = 8
                 edge.fontname = 'Arial'
 
