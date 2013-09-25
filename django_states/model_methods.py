@@ -154,6 +154,7 @@ def get_STATE_info(self, field='state', machine=None):
             :param dict kwargs: the kwargs that will be passed to
                 :meth:`~django_states.machine.StateTransition.handler`
             """
+            print 'in make_transition: ', self, self.state, si_self, transition
             # Transition name should be known
             if not machine.has_transition(transition):
                 raise UnknownTransition(self, transition)
@@ -198,7 +199,7 @@ def get_STATE_info(self, field='state', machine=None):
 
                 # Then set new state and save.
                 setattr(self, field, t.to_state)
-                self.save()
+                self.save(no_state_validation=True)
                 after_state_execute.send(sender=self,
                                          from_state=from_state,
                                          to_state=t.to_state)

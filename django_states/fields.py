@@ -5,6 +5,7 @@ __all__ = ('StateField',)
 
 from django.db import models
 from django.utils.functional import curry
+from django_states.exceptions import TransitionException, TransitionCannotStart
 from django_states.machine import StateMachine
 
 from django_states.model_methods import (get_STATE_transitions,
@@ -92,11 +93,28 @@ class StateField(models.CharField):
             created = not obj.id
 
             # Validate whether this is an existing state
-            if kwargs.pop('no_state_validation', True):
+            if kwargs.pop('no_state_validation', False):
                 state = None
             else:
                 # Can raise UnknownState
                 state = self._machine.get_state(obj.state)
+
+                if not created:
+                    previous_obj = obj.__class__.objects.get(id=obj.id)
+                    from_state = previous_obj.state
+                    to_state = obj.state
+
+                    if from_state != to_state:
+                        transition = obj.Machine.get_transition_from_states(from_state, to_state)
+                        obj.state = from_state
+
+
+                        if obj.can_make_transition(transition.get_name()):
+                            print "---", transition
+                            print 'obj.state', obj.state
+
+                            obj.make_transition(transition.get_name())
+
 
             # Save first using the real save function
             result = real_save(obj, *args, **kwargs)
