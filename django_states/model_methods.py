@@ -206,10 +206,7 @@ def get_STATE_info(self, field='state', machine=None):
                 if _state_log_model:
                     transition_log.make_transition('fail')
 
-                # Print original traceback for debugging
-                import traceback
-                traceback.print_exc()
-                raise e
+                raise
             else:
                 if _state_log_model:
                     transition_log.make_transition('complete')
