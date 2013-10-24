@@ -83,8 +83,6 @@ class StateModel(models.Model):
             description = _('Make dummy state transition')
 
     class Meta:
-        verbose_name = _('state')
-        verbose_name_plural = _('states')
         abstract = True
 
     def __unicode__(self):
