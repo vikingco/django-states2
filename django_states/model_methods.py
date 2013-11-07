@@ -170,7 +170,7 @@ def get_STATE_info(self, field='state', machine=None):
                 except TypeError:
                     serialized_kwargs = json.dumps(None)
 
-                if not user.is_authenticated():
+                if user and not user.is_authenticated():
                     user=None
 
                 transition_log = _state_log_model.objects.create(
