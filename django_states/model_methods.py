@@ -17,7 +17,8 @@ def get_STATE_transitions(self, field='state'):
     """
     if getattr(self, '_%s_log_model' % field, None):
         LogModel = getattr(self, '_%s_log_model' % field, None)
-        return LogModel.objects.filter(on=self)
+        using = self.get_using_db()
+        return LogModel.objects.using(using).filter(on=self)
     else:
         raise Exception('This model does not log state transitions. '
                         'Please enable it by setting log_transitions=True')
@@ -154,6 +155,16 @@ def get_STATE_info(self, field='state', machine=None):
             :param dict kwargs: the kwargs that will be passed to
                 :meth:`~django_states.machine.StateTransition.handler`
             """
+            # We either have our model instance (first case)
+            # or the log related (second case)
+            try:
+                using = self.get_using_db()
+            except (AttributeError, TypeError):
+                try:
+                    using = self.on.get_using_db()
+                except (AttributeError, TypeError):
+                    using = 'default'
+
             # Transition name should be known
             if not machine.has_transition(transition):
                 raise UnknownTransition(self, transition)
@@ -170,7 +181,7 @@ def get_STATE_info(self, field='state', machine=None):
                 except TypeError:
                     serialized_kwargs = json.dumps(None)
 
-                transition_log = _state_log_model.objects.create(
+                transition_log = _state_log_model.objects.using(using).create(
                     on=self, from_state=getattr(self, field), to_state=t.to_state,
                     user=user, serialized_kwargs=serialized_kwargs)
 
@@ -198,7 +209,7 @@ def get_STATE_info(self, field='state', machine=None):
 
                 # Then set new state and save.
                 setattr(self, field, t.to_state)
-                self.save()
+                self.save(using=using)
                 after_state_execute.send(sender=self,
                                          from_state=from_state,
                                          to_state=t.to_state)

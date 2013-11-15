@@ -1,6 +1,14 @@
 ~~~~~~~~~
 CHANGELOG
 ~~~~~~~~~
+1.6.0
+=====
+Release date:
+  2013-11-20
+Notes:
+  * Adds support for Django's multi-database features.
+  * Updates readme
+
 v1.4.3
 ======
 Release date:

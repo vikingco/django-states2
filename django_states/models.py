@@ -3,8 +3,7 @@
 
 # Author: Jonathan Slenders, CityLive
 
-__doc__ = \
-"""
+__doc__ = """
 
 Base models for every State.
 
@@ -181,3 +180,14 @@ class StateModel(models.Model):
     @classmethod
     def get_state_choices(cls):
         return cls.Machine.get_state_choices()
+
+    def get_using_db(self):
+        """
+        Returns which database to use when creating, filter, saving, etc.
+
+        See: https://docs.djangoproject.com/en/dev/topics/db/multi-db/#selecting-a-database-for-save
+
+        If you aren't using multiple databases, this can be left as 'default'.
+
+        """
+        return 'default'

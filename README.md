@@ -93,7 +93,7 @@ p = Purchase()
 # Will automatically create state object for this purchase, in the
 # initial state.
 p.save()
-p.make_transition('initiate', request.user) # User parameter is optional
+p.make_transition('mark_paid', request.user) # User parameter is optional
 p.state # Will return 'paid'
 p.state_description # Will return 'Purchase paid'
 
@@ -189,7 +189,7 @@ You can get a graph of your states by running the ``graph_states`` management
 command.
 
 ```sh
-python manage.py graph_states myapp.Purchase.state
+python manage.py graph_states2 myapp.Purchase.state
 ```
 
 This requires [graphviz](http://graphviz.org) and python bindings for
