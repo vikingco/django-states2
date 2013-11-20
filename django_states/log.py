@@ -4,11 +4,11 @@
 """
 Suport for Django 1.5 custom user model.
 """
+import json
 
 from django.db import models
 from django.db.models.base import ModelBase
 from django.utils.translation import ugettext_lazy as _
-from django.utils import simplejson as json
 from django.conf import settings
 
 from django_states import conf
