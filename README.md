@@ -25,15 +25,11 @@ pip install django-states
 Usage example
 -------------
 
-It's basically these two things:
-
-* Derived your model from `StateModel`
-* Add a `Machine` class to your model, for the state machine
-
+To use a state machine, you should add a state field to the model
 
 ```python
-from django_states.models import StateMachine, StateDefinition, StateTransition
-from django_states.models import StateModel
+from django_states.fields import StateField
+from django_states.machine import StateMachine, StateDefinition, StateTransition
 
 class PurchaseStateMachine(StateMachine):
    log_transitions = True
@@ -70,16 +66,13 @@ class PurchaseStateMachine(StateMachine):
            return true_when_user_can_make_this_transition()
 
 class Purchase(StateModel):
-    Machine = PurchaseStateMachine
+    purchase_state = StateField(machine=PurchaseStateMachine, default='initiated')
     ... (other fields for a purchase)
 ```
 
-You may of course nest the `Machine` class, like you would usually do
-for `Meta`.
 
-This will create the necessary models. If `log_transitions` is
-enabled, another model is created. Everything should be compatible with
-South_ for migrations.
+If `log_transitions` is enabled, another model is created. Everything should be
+compatible with South_ for migrations.
 
 Note: If you're creating a `DataMigration` in [South](http://south.aeracode.org/),
 remember to use `obj.save(no_state_validation=True)`
@@ -93,21 +86,12 @@ p = Purchase()
 # Will automatically create state object for this purchase, in the
 # initial state.
 p.save()
-p.make_transition('initiate', request.user) # User parameter is optional
+p.get_purchase_state_info().make_transition('mark_paid', request.user) # User parameter is optional
 p.state # Will return 'paid'
-p.state_description # Will return 'Purchase paid'
-
-# Will return all the state transitions for this instance.
-p.state_transitions.all()
-
-# The user who triggered this transition
-p.state_transitions.all()[0].user
-
-# Will return 'complete' or 'failed', depending on the state of this state transition.
-p.state_transitions.all()[0].state
+p.get_purchase_state_info().description # Will return 'Purchase paid'
 
 # Returns an iterator of possible transitions for this purchase.
-p.possible_transitions
+p.get_purchase_state_info().possible_transitions()
 
 # Which can be used like this..
 [x.get_name() for x in p.possible_transitions]
@@ -159,27 +143,6 @@ class is_paid(StateGroup):
 
 class is_paid(StateGroup):
     exclude_states = ['initiated']
-```
-
-Admin actions
--------------
-
-By specifying actions for the Django Admin
-(see [admin actions](http://docs.djangoproject.com/en/dev/ref/contrib/admin/actions/)), you can do
-state transitions for the admin site. To support this in your model, update
-your `ModelAdmin`:
-
-```python
-class PurchaseAdmin(admin.ModelAdmin):
-    actions = Purchase.Machine.get_admin_actions()
-```
-
-If your model didn't inherit from `StateModel`, you can also specify the
-`field_name`:
-
-```python
-class PurchaseAdmin(admin.ModelAdmin):
-    actions = Purchase.Machine.get_admin_actions(field_name='purchase_state')
 ```
 
 State graph
