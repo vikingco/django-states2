@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """Model Methods"""
 
-from django.utils import simplejson as json
+import json
+from django.core.serializers.json import DjangoJSONEncoder
 
 from django_states.exceptions import PermissionDenied, TransitionCannotStart, \
     TransitionException, TransitionNotValidated, UnknownTransition
@@ -166,8 +167,8 @@ def get_STATE_info(self, field='state', machine=None):
                 # Try to serialize kwargs, for the log. Save null
                 # when it's not serializable.
                 try:
-                    serialized_kwargs = json.dumps(kwargs)
-                except TypeError:
+                    serialized_kwargs = json.dumps(kwargs, cls=DjangoJSONEncoder)
+                except TypeError as e:
                     serialized_kwargs = json.dumps(None)
 
                 transition_log = _state_log_model.objects.create(
