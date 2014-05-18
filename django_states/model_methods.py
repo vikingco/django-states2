@@ -141,7 +141,7 @@ def get_STATE_info(self, field='state', machine=None):
             if validation_errors:
                 raise TransitionNotValidated(si_self, transition, validation_errors)
 
-            return True
+            return si_self
 
         def make_transition(si_self, transition, user=None, **kwargs):
             """

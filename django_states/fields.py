@@ -46,32 +46,33 @@ class StateField(models.CharField):
         """
         super(StateField, self).contribute_to_class(cls, name)
 
-        # Set choice options (for combo box)
-        self._choices = self._machine.get_state_choices()
-        self.default = self._machine.initial_state
+        if not cls._meta.abstract:
+            # Set choice options (for combo box)
+            self._choices = self._machine.get_state_choices()
+            self.default = self._machine.initial_state
 
-        # do we need logging?
-        if self._machine.log_transitions:
-            from django_states.log import _create_state_log_model
-            log_model = _create_state_log_model(cls, name, self._machine)
-        else:
-            log_model = None
+            # do we need logging?
+            if self._machine.log_transitions:
+                from django_states.log import _create_state_log_model
+                log_model = _create_state_log_model(cls, name, self._machine)
+            else:
+                log_model = None
 
-        setattr(cls, '_%s_log_model' % name, log_model)
+            setattr(cls, '_%s_log_model' % name, log_model)
 
-        # adding extra methods
-        setattr(cls, 'get_%s_display' % name,
-            curry(get_STATE_display, field=name, machine=self._machine))
-        setattr(cls, 'get_%s_transitions' % name,
-            curry(get_STATE_transitions, field=name))
-        setattr(cls, 'get_public_%s_transitions' % name,
-            curry(get_public_STATE_transitions, field=name))
-        setattr(cls, 'get_%s_info' % name,
-            curry(get_STATE_info, field=name, machine=self._machine))
-        setattr(cls, 'get_%s_machine' % name,
-            curry(get_STATE_machine, field=name, machine=self._machine))
+            # adding extra methods
+            setattr(cls, 'get_%s_display' % name,
+                curry(get_STATE_display, field=name, machine=self._machine))
+            setattr(cls, 'get_%s_transitions' % name,
+                curry(get_STATE_transitions, field=name))
+            setattr(cls, 'get_public_%s_transitions' % name,
+                curry(get_public_STATE_transitions, field=name))
+            setattr(cls, 'get_%s_info' % name,
+                curry(get_STATE_info, field=name, machine=self._machine))
+            setattr(cls, 'get_%s_machine' % name,
+                curry(get_STATE_machine, field=name, machine=self._machine))
 
-        models.signals.class_prepared.connect(self.finalize, sender=cls)
+            models.signals.class_prepared.connect(self.finalize, sender=cls)
 
     def finalize(self, sender, **kwargs):
         """
