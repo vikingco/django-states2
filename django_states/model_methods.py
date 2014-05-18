@@ -85,6 +85,14 @@ def get_STATE_info(self, field='state', machine=None):
             return getattr(self, field)
 
         @property
+        def initial(si_self):
+            """
+            The description of the current state
+            """
+            si = machine.get_state(getattr(self, field))
+            return si.initial
+
+        @property
         def description(si_self):
             """
             The description of the current state
