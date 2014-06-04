@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Model Methods"""
 
-from django.utils import simplejson as json
+import json
 
 from django_states.exceptions import PermissionDenied, TransitionCannotStart, \
     TransitionException, TransitionNotValidated, UnknownTransition

@@ -2,19 +2,15 @@
 """log model"""
 
 """
-Suport for Django 1.5 custom user model. 
+Suport for Django 1.5 custom user model.
 """
-try:
-    from django.contrib.auth import get_user_model
-except ImportError: # django < 1.5
-    from django.contrib.auth.models import User
-else:
-    User = get_user_model()
+
+import json
 
 from django.db import models
 from django.db.models.base import ModelBase
 from django.utils.translation import ugettext_lazy as _
-from django.utils import simplejson as json
+from django.conf import settings
 
 from django_states import conf
 from django_states.fields import StateField
@@ -114,7 +110,7 @@ def _create_state_log_model(state_model, field_name, machine):
         from_state = models.CharField(max_length=100,
                                       choices=get_state_choices())
         to_state = models.CharField(max_length=100, choices=get_state_choices())
-        user = models.ForeignKey(User, blank=True, null=True)
+        user = models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), blank=True, null=True)
         serialized_kwargs = models.TextField(blank=True)
 
         start_time = models.DateTimeField(
