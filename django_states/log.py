@@ -96,7 +96,7 @@ def _create_state_log_model(state_model, field_name, machine):
             return ModelBase.__new__(c, class_name, bases, attrs)
 
     get_state_choices = machine.get_state_choices
-
+    
     class _StateTransition(models.Model):
         """
         The log entries for :class:`~django_states.machine.StateTransition`.
@@ -118,9 +118,10 @@ def _create_state_log_model(state_model, field_name, machine):
             verbose_name=_('transition started at')
         )
         on = models.ForeignKey(state_model, related_name=('%s_history' % field_name))
-
+        
         class Meta:
             """Non-field Options"""
+            # noticed ImportError in some cases! https://code.djangoproject.com/ticket/15084 
             verbose_name = _('%s transition') % state_model._meta.verbose_name
 
             # When the state class has been given an app_label, use

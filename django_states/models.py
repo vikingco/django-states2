@@ -116,7 +116,7 @@ class StateModel(models.Model):
 
         :returns: ``True`` when the current state is the initial state
         """
-        return bool(self.get_state_info().initial)
+        return self.get_state_info().initial
 
     @property
     def possible_transitions(self):
