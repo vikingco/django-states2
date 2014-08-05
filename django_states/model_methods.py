@@ -200,7 +200,8 @@ def get_STATE_info(self, field='state', machine=None):
                 before_state_execute.send(sender=self.__class__,
                                           instance=self, 
                                           from_state=from_state,
-                                          to_state=t.to_state)
+                                          to_state=t.to_state,
+                                          user=user)
                 # First call handler (handler should still see the original
                 # state.)
                 t.handler(self, user, **kwargs)
@@ -211,7 +212,8 @@ def get_STATE_info(self, field='state', machine=None):
                 after_state_execute.send(sender=self.__class__,
                                          instance=self, 
                                          from_state=from_state,
-                                         to_state=t.to_state)
+                                         to_state=t.to_state,
+                                         user=user)
             except Exception, e:
                 if _state_log_model:
                     transition_log.make_transition('fail')
