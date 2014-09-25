@@ -7,4 +7,4 @@ install:
   - "pip install . --use-mirrors"
   - "pip install Django==1.6.5"
 
-script: python ./test_proj/manage.py test django_states
+script: cd test_proj; python manage.py test django_states
