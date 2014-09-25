@@ -57,6 +57,16 @@ class TestMachine(StateMachine):
         to_state = 'step_1'
         description = "Transition from failure back to normal"
 
+    """
+    GROUPS
+    """
+    class states_valid_start(StateGroup):
+        #Valid initial states
+        states = ['start', 'step_1']
+
+    class states_error(StateGroup):
+        #Error states
+        states = ['step_2_fail']
 
 #class TestLogMachine(TestMachine):
 #    """Same as above but this one logs"""
@@ -100,12 +110,12 @@ class StateTestCase(TransactionTestCase):
         testclass = DjangoState2Class(field1=100, field2="LALALALALA")
         testclass.save()
 
-        testmachine = testclass.get_state_info()
+        state_info = testclass.get_state_info()
 
         self.assertEqual(testclass.state, 'start')
-        self.assertTrue(testmachine.initial)
-        testmachine.make_transition('start_step_1', user=self.superuser)
-        self.assertFalse(testmachine.initial)
+        self.assertTrue(state_info.initial)
+        state_info.make_transition('start_step_1', user=self.superuser)
+        self.assertFalse(state_info.initial)
 
     def test_end_to_end(self):
         """Full end to end test"""
@@ -158,3 +168,21 @@ class StateTestCase(TransactionTestCase):
         state_info = testclass.get_state_info()
 
         self.assertRaises(PermissionDenied, state_info.make_transition, **kwargs)
+
+    def test_in_group(self):
+        """Tests in_group functionality"""
+        testclass = DjangoState2Class(field1=100, field2="LALALALALA")
+        testclass.save()
+
+        state_info = testclass.get_state_info()
+
+        self.assertTrue(state_info.in_group['states_valid_start'])
+        state_info.make_transition('start_step_1', user=self.superuser)
+        self.assertTrue(state_info.in_group['states_valid_start'])
+        state_info.make_transition('step_1_step_2_fail', user=self.superuser)
+        self.assertFalse(state_info.in_group['states_valid_start'])
+        self.assertTrue(state_info.in_group['states_error'])
+        state_info.make_transition('step_2_fail_step_1', user=self.superuser)
+        self.assertTrue(state_info.in_group['states_valid_start'])
+        state_info.make_transition('step_1_step_3', user=self.superuser)
+        self.assertFalse(state_info.in_group['states_valid_start'])
