@@ -42,5 +42,10 @@ local.properties
 .settings/
 .loadpath
 
+##########
+## PyCharm
+##########
+.idea/
+
 # CDT-specific
 .cproject
