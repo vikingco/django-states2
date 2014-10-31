@@ -6,6 +6,7 @@ Suport for Django 1.5 custom user model.
 """
 
 import json
+import sys
 
 from django.db import models
 from django.db.models.base import ModelBase
@@ -93,6 +94,13 @@ def _create_state_log_model(state_model, field_name, machine):
             values = {'model_name': state_model.__name__,
                       'field_name': field_name.capitalize()}
             class_name = conf.LOG_MODEL_NAME % values
+
+            # Make sure that for Python2, class_name is a 'str' object.
+            # In Django 1.7, `field_name` returns a unicode object, causing
+            # `class_name` to be unicode as well.
+            if sys.version_info[0] == 2:
+                class_name = str(class_name)
+
             return ModelBase.__new__(c, class_name, bases, attrs)
 
     get_state_choices = machine.get_state_choices
