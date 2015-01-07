@@ -1,6 +1,8 @@
 Django States
 =============
 
+[![Build Status](https://travis-ci.org/vikingco/django-states2.svg?branch=fix%2F15403%2Fdebug-in_group-and-add-unittests)](https://travis-ci.org/vikingco/django-states2)
+
 Authors:
 
 * Jonathan Slenders, City Live nv
