@@ -28,7 +28,10 @@ def make_state_transition(request):
     if request.method == 'POST':
         # Process post parameters
         app_label, model_name = request.POST['model_name'].split('.')
-        model = get_model(app_label, model_name)
+        try:
+            model = get_model(app_label, model_name)
+        except LookupError:
+            model = None
         instance = get_object_or_404(model, id=request.POST['id'])
         action = request.POST['action']
 
