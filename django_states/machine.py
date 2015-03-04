@@ -241,7 +241,7 @@ class StateMachine(object):
                 for o in queryset:
                     get_STATE_info = getattr(o, 'get_%s_info' % field_name)
                     try:
-                        get_STATE_info.test_transition(transition_name,
+                        get_STATE_info().test_transition(transition_name,
                                                        request.user)
                     except TransitionException, e:
                         modeladmin.message_user(request, 'ERROR: %s on: %s' % (e.message, unicode(o)))
@@ -250,7 +250,7 @@ class StateMachine(object):
                 # Make actual transitions
                 for o in queryset:
                     get_STATE_info = getattr(o, 'get_%s_info' % field_name)
-                    get_STATE_info.make_transition(transition_name,
+                    get_STATE_info().make_transition(transition_name,
                                                    request.user)
 
                 # Feeback
