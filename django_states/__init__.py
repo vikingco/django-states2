@@ -7,7 +7,7 @@ State transitions can be logged for objects.
 """
 
 #: The version list
-VERSION = (1, 6, 3)
+VERSION = (1, 6, 4)
 
 #: The actual version number, used by python (and shown in sentry)
 __version__ = '.'.join(map(str, VERSION))

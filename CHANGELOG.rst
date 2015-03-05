@@ -1,6 +1,15 @@
 ~~~~~~~~~
 CHANGELOG
 ~~~~~~~~~
+
+1.6.4 (2015-03-05)
+==================
+
+* Maintainer is now Jef Geskens
+* Django 1.7 support
+* Merged pull request #65 from José Padilla
+* Starting point of more regular PyPI releases
+
 v1.4.3
 ======
 Release date:
