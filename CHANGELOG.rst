@@ -2,6 +2,11 @@
 CHANGELOG
 ~~~~~~~~~
 
+1.6.5 (2015-03-19)
+==================
+
+* `3c76ad6 <https://github.com/vikingco/django-states2/commit/3c76ad6>`_ Add correct message level for transition errors <José Padilla>
+
 1.6.4 (2015-03-05)
 ==================
 
