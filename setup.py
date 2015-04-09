@@ -1,7 +1,13 @@
-import os
+#!/usr/bin/env python
+
+import os.path
+import sys
+
 from setuptools import setup, find_packages
 
 import django_states
+
+sys.path.insert(0, os.path.dirname(__file__))
 
 
 setup(
@@ -15,6 +21,7 @@ setup(
     author_email='jonathan.slenders@mobilevikings.com',
     packages=find_packages('.'),
     #package_dir={'': 'templates/*'},
+    test_suite='test_proj.runtests.main',
     classifiers=[
         'Intended Audience :: Developers',
         'Programming Language :: Python',
