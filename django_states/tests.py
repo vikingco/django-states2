@@ -69,7 +69,7 @@ class TestMachine(StateMachine):
         #Error states
         states = ['step_2_fail']
 
-class TestLogMachine(TestMachine):
+class TestLogMachine(StateMachine):
     """Same as above but this one logs"""
     log_transitions = True
 
