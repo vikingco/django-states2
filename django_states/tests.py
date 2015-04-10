@@ -93,12 +93,14 @@ class TestLogMachine(TestMachine):
         from_state = 'start'
         to_state = 'first_step'
         description = "Transition from start to normal"
+        public = True
 
     class step_1_final_step(StateTransition):
         """Transition from normal to complete"""
         from_state = 'first_step'
         to_state = 'final_step'
         description = "Transition from normal to complete"
+        public = True
 
 # ----- Django Test Models ------
 
@@ -295,7 +297,12 @@ class StateLogTestCase(TransactionTestCase):
         # Make transition
         state_info.make_transition('start_step_1', user=self.superuser)
 
+
+        # Test whether log entry was created
         StateLogModel = DjangoStateLogClass._state_log_model
         self.assertEqual(StateLogModel.objects.count(), 1)
         entry = StateLogModel.objects.all()[0]
         self.assertTrue(entry.completed)
+        # We should also be able to find this via
+        self.assertEqual(test.get_state_transitions().count(), 1)
+        self.assertEqual(len(test.get_public_state_transitions()), 1)
