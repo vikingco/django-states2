@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.test import TransactionTestCase
 
-from django_states.exceptions import PermissionDenied, UnknownState
+from django_states.exceptions import PermissionDenied, UnknownState, UnknownTransition
 from django_states.fields import StateField
 from django_states.machine import StateMachine, StateDefinition, StateTransition, StateGroup
 from django_states.models import StateModel
@@ -215,6 +215,14 @@ class StateTestCase(TransactionTestCase):
         self.assertTrue(state_info.in_group['states_valid_start'])
         state_info.make_transition('step_1_step_3', user=self.superuser)
         self.assertFalse(state_info.in_group['states_valid_start'])
+
+    def test_unknown_transition(self):
+        test = DjangoState2Class(field1=100, field2="LALALALALA")
+        test.save()
+
+        state_info = test.get_state_info()
+        with self.assertRaises(UnknownTransition):
+            state_info.make_transition('unknown_transition', user=self.superuser)
 
     def test_unknown_state(self):
         test = DjangoState2Class(field1=100, field2="LALALALALA")
