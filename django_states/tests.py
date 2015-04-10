@@ -141,6 +141,9 @@ class StateFieldTestCase(TransactionTestCase):
         testclass = DjangoState2Class(field1=100, field2="LALALALALA")
         testclass.save()
 
+        self.assertEqual(testclass.get_state_machine(), TestMachine)
+        self.assertEqual(testclass.get_state_display(), 'Starting State.')
+
         state_info = testclass.get_state_info()
 
         self.assertEqual(testclass.state, 'start')
