@@ -243,6 +243,41 @@ class StateFieldTestCase(TransactionTestCase):
         test.save(no_state_validation=False)
 
 
+class StateModelTestCase(TransactionTestCase):
+    """This will test out the non-logging side of things"""
+
+    def setUp(self):
+        self.superuser = User.objects.create_superuser(
+            username='super', email="super@h.us", password="pass")
+
+    def test_classmethods(self):
+        self.assertEqual(DjangoStateClass.get_state_model_name(), 'django_states.DjangoStateClass')
+        state_choices = DjangoStateClass.get_state_choices()
+        self.assertEqual(len(state_choices), 4)
+        self.assertEqual(len(state_choices[0]), 2)
+        state_choices = dict(state_choices)
+        self.assertTrue('start' in state_choices)
+        self.assertEqual(state_choices['start'], 'Starting State.')
+
+    def test_model_end_to_end(self):
+        test = DjangoStateClass(field1=42, field2="Knock? Knock?")
+        test.save()
+
+        self.assertEqual(test.state, 'start')
+        self.assertTrue(test.is_initial_state)
+        self.assertEqual(test.state_description, "Starting State.")
+
+        self.assertEqual(len(list(test.possible_transitions)), 1)
+        self.assertEqual(len(list(test.public_transitions)), 0)
+        with self.assertRaises(Exception):
+            test.state_transitions
+
+        test.can_make_transition('start_step_1', user=self.superuser)
+        self.assertTrue(test.is_initial_state)
+        test.make_transition('start_step_1', user=self.superuser)
+        self.assertFalse(test.is_initial_state)
+
+
 class StateLogTestCase(TransactionTestCase):
 
     def setUp(self):
