@@ -69,9 +69,36 @@ class TestMachine(StateMachine):
         #Error states
         states = ['step_2_fail']
 
-#class TestLogMachine(TestMachine):
-#    """Same as above but this one logs"""
-#    log_transitions = True
+class TestLogMachine(TestMachine):
+    """Same as above but this one logs"""
+    log_transitions = True
+
+    # States
+    class start(StateDefinition):
+        """Start"""
+        description = "Starting State."
+        initial = True
+
+    class first_step(StateDefinition):
+        """Normal State"""
+        description = "Normal State"
+
+    class final_step(StateDefinition):
+        """Completed"""
+        description = "Completed"
+
+    # Transitions
+    class start_step_1(StateTransition):
+        """Transition from start to normal"""
+        from_state = 'start'
+        to_state = 'first_step'
+        description = "Transition from start to normal"
+
+    class step_1_final_step(StateTransition):
+        """Transition from normal to complete"""
+        from_state = 'first_step'
+        to_state = 'final_step'
+        description = "Transition from normal to complete"
 
 # ----- Django Test Models ------
 
@@ -90,11 +117,12 @@ class DjangoState2Class(models.Model):
     state = StateField(machine=TestMachine)
 
 
-#class DjangoStateLogClass(models.Model):
-#    """Django Test Model implementing a Logging State Machine"""
-#    field1 = models.IntegerField()
-#    field2 = models.CharField(max_length=25)
-#    Machine = TestLogMachine
+class DjangoStateLogClass(models.Model):
+    """Django Test Model implementing a Logging State Machine"""
+    field1 = models.IntegerField()
+    field2 = models.CharField(max_length=25)
+
+    state = StateField(machine=TestLogMachine)
 
 # ---- Tests ----
 
@@ -205,3 +233,19 @@ class StateTestCase(TransactionTestCase):
     def test_state_save_handler(self):
         test = DjangoState2Class(field1=100, field2="LALALALALA")
         test.save(no_state_validation=False)
+
+    def test_statelog(self):
+        test = DjangoStateLogClass(field1=42, field2="Hello world?")
+        test.save(no_state_validation=False)
+
+        # Verify the starting state.
+        state_info = test.get_state_info()
+        self.assertEqual(test.state, 'start')
+        self.assertEqual(state_info.name, test.state)
+        # Make transition
+        state_info.make_transition('start_step_1', user=self.superuser)
+
+        StateLogModel = DjangoStateLogClass._state_log_model
+        self.assertEqual(StateLogModel.objects.count(), 1)
+        entry = StateLogModel.objects.all()[0]
+        self.assertTrue(entry.completed)
