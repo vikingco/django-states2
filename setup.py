@@ -19,7 +19,7 @@ setup(
     long_description=open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
     author='Jonathan Slenders, Gert van Gool, Maarten Timmerman, Steven (rh0dium)',
     author_email='jonathan.slenders@mobilevikings.com',
-    packages=find_packages('.'),
+    packages=find_packages('.', exclude=['test_proj',]),
     #package_dir={'': 'templates/*'},
     test_suite='test_proj.runtests.main',
     classifiers=[
