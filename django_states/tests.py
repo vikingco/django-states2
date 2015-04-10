@@ -127,7 +127,7 @@ class DjangoStateLogClass(models.Model):
 # ---- Tests ----
 
 
-class StateTestCase(TransactionTestCase):
+class StateFieldTestCase(TransactionTestCase):
     """This will test out the non-logging side of things"""
 
     def setUp(self):
@@ -241,6 +241,13 @@ class StateTestCase(TransactionTestCase):
     def test_state_save_handler(self):
         test = DjangoState2Class(field1=100, field2="LALALALALA")
         test.save(no_state_validation=False)
+
+
+class StateLogTestCase(TransactionTestCase):
+
+    def setUp(self):
+        self.superuser = User.objects.create_superuser(
+            username='super', email="super@h.us", password="pass")
 
     def test_statelog(self):
         test = DjangoStateLogClass(field1=42, field2="Hello world?")
