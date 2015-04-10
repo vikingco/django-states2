@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.test import TransactionTestCase
 
-from django_states.exceptions import PermissionDenied, UnknownState, UnknownTransition
+from django_states.exceptions import PermissionDenied, UnknownState, UnknownTransition, TransitionNotFound
 from django_states.fields import StateField
 from django_states.machine import StateMachine, StateDefinition, StateTransition, StateGroup
 from django_states.models import StateModel
@@ -127,6 +127,119 @@ class DjangoStateLogClass(models.Model):
     state = StateField(machine=TestLogMachine)
 
 # ---- Tests ----
+
+class StateMachineTestCase(TransactionTestCase):
+
+    def test_initial_states(self):
+        with self.assertRaises(Exception):
+            class T1Machine(StateMachine):
+                class start(StateDefinition):
+                    description = 'start state'
+                    initial = True
+
+                class running(StateDefinition):
+                    description = 'running state'
+                    initial = True
+
+        with self.assertRaises(Exception):
+            class T1Machine(StateMachine):
+                class start(StateDefinition):
+                    description = 'start state'
+
+                class running(StateDefinition):
+                    description = 'running state'
+
+        with self.assertRaises(Exception):
+            class T1Machine(StateMachine):
+                class START(StateDefinition):
+                    description = 'start state'
+                    initial = True
+
+        with self.assertRaises(Exception):
+            class T1Machine(StateMachine):
+                class start(StateDefinition):
+                    initial = True
+
+        with self.assertRaises(Exception):
+            class T1Machine(StateMachine):
+                class start(StateDefinition):
+                    description = 'start state'
+                    initial = True
+
+                class running(StateDefinition):
+                    description = 'running state'
+
+                class not_runing(StateGroup):
+                    pass
+
+        with self.assertRaises(Exception):
+            class T1Machine(StateMachine):
+                class start(StateDefinition):
+                    description = 'start state'
+                    initial = True
+
+                class running(StateDefinition):
+                    description = 'running state'
+
+                class not_runing(StateGroup):
+                    states = ['start']
+                    exclude_states = ['running',]
+
+        with self.assertRaises(Exception):
+            class T1Machine(StateMachine):
+                class start(StateDefinition):
+                    description = 'start state'
+                    initial = True
+
+                class running(StateDefinition):
+                    description = 'running state'
+
+                class not_runing(StateGroup):
+                    states = 'start'
+
+        with self.assertRaises(Exception):
+            class T1Machine(StateMachine):
+                class start(StateDefinition):
+                    description = 'start state'
+                    initial = True
+
+                class running(StateDefinition):
+                    description = 'running state'
+
+                class not_runing(StateGroup):
+                    exclude_states = 'running'
+
+    def test_machine_functions(self):
+        class T3Machine(StateMachine):
+            class stopped(StateDefinition):
+                description = 'stopped state'
+                initial = True
+
+            class running(StateDefinition):
+                description = 'running state'
+
+            class crashed(StateDefinition):
+                description = 'crashed state'
+
+            class startup(StateTransition):
+                '''Transition from stopped to running'''
+                from_state = 'stopped'
+                to_state = 'running'
+                description = 'Start up the machine!'
+
+            class not_runing(StateGroup):
+                exclude_states = ['running',]
+
+        self.assertTrue(T3Machine.has_state('stopped'))
+        stopped = T3Machine.get_state('stopped')
+        self.assertFalse(T3Machine.has_state('died'))
+        with self.assertRaises(UnknownState):
+            T3Machine.get_state('died')
+        self.assertTrue(T3Machine.get_state_groups('stopped')['not_runing'])
+        self.assertFalse(T3Machine.get_state_groups('running')['not_runing'])
+        T3Machine.get_transition_from_states('stopped', 'running')
+        with self.assertRaises(TransitionNotFound):
+            T3Machine.get_transition_from_states('running', 'crashed')
 
 
 class StateFieldTestCase(TransactionTestCase):
