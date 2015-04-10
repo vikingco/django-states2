@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 
 from django.db import models
 from django.test import TransactionTestCase
+
 from django_states.exceptions import PermissionDenied
 from django_states.fields import StateField
 from django_states.machine import StateMachine, StateDefinition, StateTransition, StateGroup
