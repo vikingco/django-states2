@@ -201,3 +201,7 @@ class StateTestCase(TransactionTestCase):
         # TODO: Due to invalid default value of no_state_validation, this won't throw an error
         #with self.assertRaises(UnknownState):
         #    test.save()
+
+    def test_state_save_handler(self):
+        test = DjangoState2Class(field1=100, field2="LALALALALA")
+        test.save(no_state_validation=False)
