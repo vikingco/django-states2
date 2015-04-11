@@ -3,13 +3,6 @@ Django States
 
 |Build Status|
 
-Authors:
-
--  Jonathan Slenders, City Live nv
--  Gert van Gool, City Live nv
--  Maarten Timmerman, City Live nv
--  Steven (rh0dium), Pivotal Engergy Solutions, Phoenix Arizona
-
 Description
 -----------
 
