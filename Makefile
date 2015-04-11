@@ -7,5 +7,5 @@ docs: $(DOCS_MAKE_CMD)
 $(DOCS_MAKE_CMD):
 	DJANGO_SETTINGS_MODULE=test_proj.settings $(MAKE) -C docs $@
 
-clean: docs_clean
+clean:
 	$(MAKE) -C docs clean
