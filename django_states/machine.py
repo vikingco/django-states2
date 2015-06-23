@@ -6,6 +6,7 @@ __all__ = ('StateMachine', 'StateDefinition', 'StateTransition')
 from collections import defaultdict
 import logging
 
+from django.contrib import messages
 from django_states.exceptions import (TransitionNotFound, TransitionValidationError,
                                 UnknownState, TransitionException, MachineDefinitionException)
 
@@ -241,16 +242,17 @@ class StateMachine(object):
                 for o in queryset:
                     get_STATE_info = getattr(o, 'get_%s_info' % field_name)
                     try:
-                        get_STATE_info.test_transition(transition_name,
+                        get_STATE_info().test_transition(transition_name,
                                                        request.user)
                     except TransitionException, e:
-                        modeladmin.message_user(request, 'ERROR: %s on: %s' % (e.message, unicode(o)))
+                        modeladmin.message_user(request, 'ERROR: %s on: %s' % (e.message, unicode(o)),
+                                                level=messages.ERROR)
                         return
 
                 # Make actual transitions
                 for o in queryset:
                     get_STATE_info = getattr(o, 'get_%s_info' % field_name)
-                    get_STATE_info.make_transition(transition_name,
+                    get_STATE_info().make_transition(transition_name,
                                                    request.user)
 
                 # Feeback

@@ -32,7 +32,10 @@ class Command(BaseCommand):
 
     def render_for_model(self, model_label, **options):
         app_label,model,field = model_label.split('.')
-        Model = get_model(app_label, model)
+        try:
+            Model = get_model(app_label, model)
+        except LookupError:
+            Model = None
         STATE_MACHINE = getattr(Model(), 'get_%s_machine' % field)()
 
         name = unicode(Model._meta.verbose_name)

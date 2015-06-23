@@ -1,0 +1,10 @@
+language: python
+
+python:
+  - "2.7"
+
+install:
+  - "pip install . --use-mirrors"
+  - "pip install Django==1.6.5"
+
+script: cd test_proj; python manage.py test django_states

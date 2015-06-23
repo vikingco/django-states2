@@ -50,8 +50,15 @@ class StateField(models.CharField):
         self._choices = self._machine.get_state_choices()
         self.default = self._machine.initial_state
 
-        # do we need logging?
-        if self._machine.log_transitions:
+        # Do we need logging?
+        # For Django 1.7: the migrations framework creates copies for all
+        #                 the models, placing them all in a module name
+        #                 "__fake__". Of course, for Django, for each module,
+        #                 the names should be unique, so that wouldn't work.
+        #                 We decide just to not have a logging model for the
+        #                 migrations.
+        # https://github.com/django/django/blob/f2ddc439b1938acb6cae693bda9d8cf83a4583be/django/db/migrations/state.py#L316
+        if self._machine.log_transitions and cls.__module__ != '__fake__':
             from django_states.log import _create_state_log_model
             log_model = _create_state_log_model(cls, name, self._machine)
         else:
@@ -96,7 +103,7 @@ class StateField(models.CharField):
                 state = None
             else:
                 # Can raise UnknownState
-                state = self._machine.get_state(obj.state)
+                state = self._machine.get_state(obj.state).get_name()
 
             # Save first using the real save function
             result = real_save(obj, *args, **kwargs)
