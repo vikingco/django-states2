@@ -62,12 +62,13 @@ class TestMachine(StateMachine):
     GROUPS
     """
     class states_valid_start(StateGroup):
-        #Valid initial states
+        # Valid initial states
         states = ['start', 'step_1']
 
     class states_error(StateGroup):
-        #Error states
+        # Error states
         states = ['step_2_fail']
+
 
 class TestLogMachine(StateMachine):
     """Same as above but this one logs"""
@@ -111,6 +112,7 @@ class DjangoStateClass(StateModel):
     field2 = models.CharField(max_length=25)
     Machine = TestMachine
 
+
 class DjangoState2Class(models.Model):
     """Django Test Model implementing a State Machine used since django-states2"""
     field1 = models.IntegerField()
@@ -127,6 +129,7 @@ class DjangoStateLogClass(models.Model):
     state = StateField(machine=TestLogMachine)
 
 # ---- Tests ----
+
 
 class StateMachineTestCase(TransactionTestCase):
 
@@ -183,7 +186,7 @@ class StateMachineTestCase(TransactionTestCase):
 
                 class not_runing(StateGroup):
                     states = ['start']
-                    exclude_states = ['running',]
+                    exclude_states = ['running']
 
         with self.assertRaises(Exception):
             class T1Machine(StateMachine):
@@ -235,7 +238,7 @@ class StateMachineTestCase(TransactionTestCase):
                 class startup(StateTransition):
                     '''Transition from stopped to running'''
                     from_state = 'start'
-                    from_states = ['start',]
+                    from_states = ['start']
                     to_state = 'running'
                     description = 'Start up the machine!'
 
@@ -319,10 +322,10 @@ class StateMachineTestCase(TransactionTestCase):
                 description = 'Start up the machine!'
 
             class working(StateGroup):
-                states = ['running',]
+                states = ['running']
 
             class not_runing(StateGroup):
-                exclude_states = ['running',]
+                exclude_states = ['running']
 
         self.assertTrue(T3Machine.has_state('stopped'))
         stopped = T3Machine.get_state('stopped')
@@ -515,7 +518,6 @@ class StateLogTestCase(TransactionTestCase):
         self.assertEqual(state_info.name, test.state)
         # Make transition
         state_info.make_transition('start_step_1', user=self.superuser)
-
 
         # Test whether log entry was created
         StateLogModel = DjangoStateLogClass._state_log_model
