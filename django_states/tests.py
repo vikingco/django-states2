@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """Tests"""
 from django.contrib.auth.models import User
-
 from django.db import models
 from django.test import TransactionTestCase
 
-from django_states.exceptions import PermissionDenied, UnknownState, UnknownTransition, TransitionNotFound
+from django_states.exceptions import (PermissionDenied, TransitionNotFound,
+                                      UnknownState, UnknownTransition)
 from django_states.fields import StateField
-from django_states.machine import StateMachine, StateDefinition, StateTransition, StateGroup
+from django_states.machine import (StateDefinition, StateGroup, StateMachine,
+                                   StateTransition)
 from django_states.models import StateModel
 
 
@@ -279,7 +280,7 @@ class StateMachineTestCase(TransactionTestCase):
                 class running(StateDefinition):
                     description = 'running state'
 
-                    def handler(cls):
+                    def handler(self):
                         pass
 
         with self.assertRaises(Exception):
@@ -297,7 +298,7 @@ class StateMachineTestCase(TransactionTestCase):
                     to_state = 'running'
                     description = 'Start your engines!'
 
-                    def handler(cls, instance):
+                    def handler(self, instance):
                         pass
 
     def test_machine_functions(self):
@@ -312,7 +313,7 @@ class StateMachineTestCase(TransactionTestCase):
             class crashed(StateDefinition):
                 description = 'crashed state'
 
-                def handler(cls, instance):
+                def handler(self, instance):
                     pass
 
             class startup(StateTransition):
@@ -329,6 +330,7 @@ class StateMachineTestCase(TransactionTestCase):
 
         self.assertTrue(T3Machine.has_state('stopped'))
         stopped = T3Machine.get_state('stopped')
+        self.assertTrue(stopped.initial)
         self.assertFalse(T3Machine.has_state('died'))
         with self.assertRaises(UnknownState):
             T3Machine.get_state('died')
@@ -344,6 +346,9 @@ class StateMachineTestCase(TransactionTestCase):
         self.assertTrue(T3Machine.has_transition('startup'))
         self.assertFalse(T3Machine.has_transition('crash'))
         trion = T3Machine.get_transitions('startup')
+        self.assertFalse(hasattr(trion, 'from_state'))
+        self.assertEqual(trion.from_states[0], 'stopped')
+        self.assertEqual(trion.to_state, 'running')
         with self.assertRaises(KeyError):
             T3Machine.get_transitions('crash')
 
@@ -475,7 +480,8 @@ class StateModelTestCase(TransactionTestCase):
             username='super', email="super@h.us", password="pass")
 
     def test_classmethods(self):
-        self.assertEqual(DjangoStateClass.get_state_model_name(), 'django_states.DjangoStateClass')
+        self.assertEqual(DjangoStateClass.get_state_model_name(),
+                         'django_states.DjangoStateClass')
         state_choices = DjangoStateClass.get_state_choices()
         self.assertEqual(len(state_choices), 4)
         self.assertEqual(len(state_choices[0]), 2)
