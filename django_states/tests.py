@@ -351,6 +351,14 @@ class StateMachineTestCase(TransactionTestCase):
         self.assertEqual(trion.to_state, 'running')
         with self.assertRaises(KeyError):
             T3Machine.get_transitions('crash')
+        # Admin actions
+        actions = T3Machine.get_admin_actions()
+        self.assertEqual(len(actions), 1)
+        action = actions[0]
+        self.assertEqual(action.__name__, 'state_transition_startup')
+        self.assertTrue('stopped' in action.short_description)
+        self.assertTrue('running' in action.short_description)
+        self.assertTrue('Start up the machine!' in action.short_description)
 
 
 class StateFieldTestCase(TransactionTestCase):
