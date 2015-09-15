@@ -14,6 +14,6 @@ test:
 	tox
 
 coverage:
-	coverage run --source='.' test_proj/runtests.py
+	coverage run --source='.' setup.py test
 	coverage html --include="django_states*" --omit="*test*" --directory=.direnv/htmlcov
 	coverage report --include="django_states*" --omit="*test*"
