@@ -345,7 +345,7 @@ class StateTransition(object):
         override this function for every StateTransition.
         """
         if False:
-            yield TransitionValidationError('Example error')
+            yield TransitionValidationError('Example error')  # pragma: no cover
         # Don't use the 'raise'-statement in here, just yield all the errors.
         # yield TransitionValidationError("This object needs ....")
         # yield TransitionValidationError("Another error ....")
