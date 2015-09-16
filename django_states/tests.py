@@ -323,6 +323,15 @@ class StateMachineTestCase(TransactionTestCase):
                 to_state = 'running'
                 description = 'Start up the machine!'
 
+            class crash(StateTransition):
+                '''Transition from stopped to running'''
+                from_states = ['running']
+                to_state = 'crashed'
+                description = 'Crash the machine!'
+
+                def handler(self, instance, user=None, reason=None):
+                    pass
+
             class working(StateGroup):
                 states = ['running']
 
@@ -343,18 +352,24 @@ class StateMachineTestCase(TransactionTestCase):
 
         T3Machine.get_transition_from_states('stopped', 'running')
         with self.assertRaises(TransitionNotFound):
-            T3Machine.get_transition_from_states('running', 'crashed')
+            T3Machine.get_transition_from_states('running', 'stopped')
         self.assertTrue(T3Machine.has_transition('startup'))
-        self.assertFalse(T3Machine.has_transition('crash'))
+        self.assertFalse(T3Machine.has_transition('stop'))
         trion = T3Machine.get_transitions('startup')
         self.assertFalse(hasattr(trion, 'from_state'))
         self.assertEqual(trion.from_states[0], 'stopped')
         self.assertEqual(trion.to_state, 'running')
+        trion = T3Machine.get_transitions('crash')
+        self.assertFalse(hasattr(trion, 'from_state'))
+        self.assertEqual(trion.from_states[0], 'running')
+        self.assertEqual(trion.to_state, 'crashed')
+        self.assertEqual(len(trion.handler_kwargs()), 1)
+        self.assertEqual(trion.handler_kwargs()[0], 'reason')
         with self.assertRaises(KeyError):
-            T3Machine.get_transitions('crash')
+            T3Machine.get_transitions('stop')
         # Admin actions
         actions = T3Machine.get_admin_actions()
-        self.assertEqual(len(actions), 1)
+        self.assertEqual(len(actions), 2)
         action = actions[0]
         self.assertEqual(action.__name__, 'state_transition_startup')
         self.assertTrue('stopped' in action.short_description)

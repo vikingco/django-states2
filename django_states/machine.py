@@ -364,6 +364,6 @@ class StateTransition(six.with_metaclass(StateTransitionMeta, object)):
         """
         return cls.__name__
 
-    @property
-    def handler_kwargs(self):
-        return self.handler.__code__.co_varnames[3:]
+    @classmethod
+    def handler_kwargs(cls):
+        return cls.handler.__code__.co_varnames[3:]
