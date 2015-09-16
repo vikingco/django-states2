@@ -167,6 +167,11 @@ def get_STATE_info(self, field='state', machine=None):
 
             _state_log_model = getattr(self, '_%s_log_model' % field, None)
 
+            if user is not None and not user.is_authenticated():
+                logged_user = None
+            else:
+                logged_user = user
+
             # Start transition log
             if _state_log_model:
                 # Try to serialize kwargs, for the log. Save null
@@ -178,7 +183,7 @@ def get_STATE_info(self, field='state', machine=None):
 
                 transition_log = _state_log_model.objects.create(
                     on=self, from_state=getattr(self, field), to_state=t.to_state,
-                    user=user, serialized_kwargs=serialized_kwargs)
+                    user=logged_user, serialized_kwargs=serialized_kwargs)
 
             # Test transition (access/execution validation)
             try:

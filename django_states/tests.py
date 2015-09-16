@@ -98,6 +98,9 @@ class TestLogMachine(StateMachine):
         description = "Transition from start to normal"
         public = True
 
+        def has_permission(cls, instance, user):
+            return True
+
     class step_1_final_step(StateTransition):
         """Transition from normal to complete"""
         from_state = 'first_step'
