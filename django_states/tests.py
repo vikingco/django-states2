@@ -370,11 +370,16 @@ class StateMachineTestCase(TransactionTestCase):
         # Admin actions
         actions = T3Machine.get_admin_actions()
         self.assertEqual(len(actions), 2)
-        action = actions[0]
+        action = filter(lambda a: a.__name__ == 'state_transition_startup', actions)[0]
         self.assertEqual(action.__name__, 'state_transition_startup')
         self.assertTrue('stopped' in action.short_description)
         self.assertTrue('running' in action.short_description)
         self.assertTrue('Start up the machine!' in action.short_description)
+        action = filter(lambda a: a.__name__ == 'state_transition_crash', actions)[0]
+        self.assertEqual(action.__name__, 'state_transition_crash')
+        self.assertTrue('crashed' in action.short_description)
+        self.assertTrue('running' in action.short_description)
+        self.assertTrue('Crash the machine!' in action.short_description)
 
 
 class StateFieldTestCase(TransactionTestCase):
