@@ -3,13 +3,6 @@ Django States
 
 |Build Status|
 
-Authors:
-
--  Jonathan Slenders, City Live nv
--  Gert van Gool, City Live nv
--  Maarten Timmerman, City Live nv
--  Steven (rh0dium), Pivotal Engergy Solutions, Phoenix Arizona
-
 Description
 -----------
 
@@ -20,7 +13,7 @@ objects.
 Installation
 ------------
 
-::
+.. code:: sh
 
     pip install django-states
 
@@ -79,7 +72,9 @@ Note: If you're creating a ``DataMigration`` in
 `South <http://south.aeracode.org/>`__, remember to use
 ``obj.save(no_state_validation=True)``
 
-Usage example::
+Usage example:
+
+.. code:: python
 
    p = Purchase()
 
@@ -132,7 +127,9 @@ Groups
 Sometimes you want to group several states together, since for a certain
 view (or other content) it doesn't really matter which of the states it
 is. We support 2 different state groups, inclusive (only these) or
-exclusive (everything but these)::
+exclusive (everything but these):
+
+.. code:: python
 
   class is_paid(StateGroup):
       states = ['paid', 'shipped']

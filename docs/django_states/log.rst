@@ -1,5 +1,5 @@
 ``django_states.log``
-===============
+=====================
 
 .. automodule:: django_states.log
    :members:
