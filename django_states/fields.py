@@ -46,6 +46,9 @@ class StateField(models.CharField):
         """
         super(StateField, self).contribute_to_class(cls, name)
 
+        if cls._meta.abstract:
+            # Do not contribute to abstract models
+            return
         # Set choice options (for combo box)
         self._choices = self._machine.get_state_choices()
         self.default = self._machine.initial_state
@@ -79,6 +82,7 @@ class StateField(models.CharField):
             curry(get_STATE_machine, field=name, machine=self._machine))
 
         models.signals.class_prepared.connect(self.finalize, sender=cls)
+
 
     def finalize(self, sender, **kwargs):
         """

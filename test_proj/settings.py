@@ -1,3 +1,4 @@
+import os
 # Django settings for test_proj project.
 import os, sys
 
