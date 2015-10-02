@@ -125,7 +125,7 @@ class StateModel(models.Model):
 
         :returns: list of transitions which can be made from the current state
         """
-        return self.get_state_info().possible_transitions()
+        return self.get_state_info().possible_transitions
 
     @classmethod
     def get_state_model_name(self):

@@ -103,7 +103,7 @@ class StateField(models.CharField):
                 state = None
             else:
                 # Can raise UnknownState
-                state = self._machine.get_state(obj.state).get_name()
+                state = self._machine.get_state(obj.state)
 
             # Save first using the real save function
             result = real_save(obj, *args, **kwargs)
