@@ -175,6 +175,9 @@ def get_STATE_info(self, field='state', machine=None):
                 except TypeError:
                     serialized_kwargs = json.dumps(None)
 
+                if user and not user.is_authenticated():
+                    user=None
+
                 transition_log = _state_log_model.objects.create(
                     on=self, from_state=getattr(self, field), to_state=t.to_state,
                     user=user, serialized_kwargs=serialized_kwargs)

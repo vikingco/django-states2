@@ -4,6 +4,7 @@
 """
 Suport for Django 1.5 custom user model.
 """
+import json
 
 import json
 import sys
