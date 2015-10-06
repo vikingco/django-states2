@@ -137,6 +137,33 @@ exclusive (everything but these):
   class is_paid(StateGroup):
       exclude_states = ['initiated']
 
+Signals
+-------
+
+Two signals are provided (``before_state_execute`` and
+``after_state_execute``) which allow you to trigger actions surrounding state
+transitions.
+
+This might be best explained with an example:
+
+.. code:: python
+
+   from django.dispatch import receiver
+   from django_states.signals import before_state_execute, after_state_execute
+   from reversion.revisions import revision_context_manager
+
+   @receiver(before_state_execute)
+   def before_transition_handler(sender, transition, user, **kwargs):
+       revision_context_manager.start()
+
+   @receiver(after_state_execute)
+   def after_transition_handler(sender, transition, user, **kwargs):
+       revision_context_manager.set_comment('State transition: ' + transition)
+       if user is not None:
+           revision_context_manager.set_user(user)
+       revision_context_manager.end()
+
+
 State graph
 -----------
 
