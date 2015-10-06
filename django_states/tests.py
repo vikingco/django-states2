@@ -542,3 +542,11 @@ class StateLogTestCase(TransactionTestCase):
         # We should also be able to find this via
         self.assertEqual(test.get_state_transitions().count(), 1)
         self.assertEqual(len(test.get_public_state_transitions()), 1)
+
+    def test_statelog_unsaved(self):
+        test = DjangoStateLogClass(field1=42, field2="Hello world?")
+        # Try to make transition on unsaved model
+        with self.assertRaises(ValueError):
+            test.get_state_info().test_transition('start_step_1', user=self.superuser)
+        with self.assertRaises(ValueError):
+            test.get_state_info().make_transition('start_step_1', user=self.superuser)

@@ -133,6 +133,9 @@ def get_STATE_info(self, field='state', machine=None):
             if not machine.has_transition(transition):
                 raise UnknownTransition(self, transition)
 
+            if not self.pk:
+                raise ValueError("Unsaved model instance %r cannot be used in make_transition." % self)
+
             t = machine.get_transitions(transition)
 
             if getattr(self, field) not in t.from_states:
@@ -163,6 +166,10 @@ def get_STATE_info(self, field='state', machine=None):
             # Transition name should be known
             if not machine.has_transition(transition):
                 raise UnknownTransition(self, transition)
+
+            if not self.pk:
+                raise ValueError("Unsaved model instance %r cannot be used in make_transition." % self)
+
             t = machine.get_transitions(transition)
 
             _state_log_model = getattr(self, '_%s_log_model' % field, None)
