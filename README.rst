@@ -44,6 +44,9 @@ To use a state machine, you should add a state field to the model
        class shipped(StateDefinition):
            description = _('Purchase shipped')
 
+       class canceled(StateDefinition):
+           description = _('Purchase canceled')
+
        # state transitions
        class mark_paid(StateTransition):
            from_state = 'initiated'
@@ -61,9 +64,14 @@ To use a state machine, you should add a state field to the model
            def has_permission(transition, instance, user):
                return true_when_user_can_make_this_transition()
 
+       class cancel(StateTransition):
+           from_states = ['initiated', 'paid']
+           to_state = 'canceled'
+           description = 'Mark this purchase as canceled'
+
     class Purchase(StateModel):
         purchase_state = StateField(machine=PurchaseStateMachine, default='initiated')
-        ... (other fields for a purchase)
+        #... (other fields for a purchase)
 
 If ``log_transitions`` is enabled, another model is created. Everything
 should be compatible with South\_ for migrations.
@@ -82,7 +90,7 @@ Usage example:
    # initial state.
    p.save()
    p.get_purchase_state_info().make_transition('mark_paid', request.user) # User parameter is optional
-   p.state # Will return 'paid'
+   p.purchase_state # Will return 'paid'
    p.get_purchase_state_info().description # Will return 'Purchase paid'
 
    # Returns an iterator of possible transitions for this purchase.
@@ -101,7 +109,7 @@ For better transition control, override:
 
 Get all objects in a certain state::
 
-   Purchase.objects.filter(state='initiated')
+   Purchase.objects.filter(purchase_state='initiated')
 
 Validation
 ----------
