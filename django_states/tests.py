@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests"""
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.test import TransactionTestCase
 
@@ -365,6 +365,7 @@ class StateFieldTestCase(TransactionTestCase):
     """This will test out the non-logging side of things"""
 
     def setUp(self):
+        User = get_user_model()
         self.superuser = User.objects.create_superuser(
             username='super', email="super@h.us", password="pass")
 
@@ -423,6 +424,7 @@ class StateFieldTestCase(TransactionTestCase):
 
     def test_invalid_user(self):
         """Verify permissions for a user"""
+        User = get_user_model()
         user = User.objects.create(
             username='user', email="user@h.us", password="pass")
 
@@ -484,6 +486,7 @@ class StateModelTestCase(TransactionTestCase):
     """This will test out the non-logging side of things"""
 
     def setUp(self):
+        User = get_user_model()
         self.superuser = User.objects.create_superuser(
             username='super', email="super@h.us", password="pass")
 
@@ -519,6 +522,7 @@ class StateModelTestCase(TransactionTestCase):
 class StateLogTestCase(TransactionTestCase):
 
     def setUp(self):
+        User = get_user_model()
         self.superuser = User.objects.create_superuser(
             username='super', email="super@h.us", password="pass")
 
