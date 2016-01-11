@@ -17,6 +17,7 @@ __all__ = ('StateMachine', 'StateDefinition', 'StateTransition', 'StateModel')
 
 from django.db import models
 from django.db.models.base import ModelBase
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from django_states.machine import StateMachine, StateDefinition, StateTransition
@@ -54,6 +55,7 @@ class StateModelBase(ModelBase):
         return ModelBase.__new__(cls, name, bases, attrs)
 
 
+@python_2_unicode_compatible
 class StateModel(six.with_metaclass(StateModelBase, models.Model)):
     """
     Every model which needs state can inherit this abstract model.
@@ -86,7 +88,7 @@ class StateModel(six.with_metaclass(StateModelBase, models.Model)):
     class Meta:
         abstract = True
 
-    def __unicode__(self):
+    def __str__(self):
         return 'State: ' + self.state
 
     @property

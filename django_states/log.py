@@ -7,6 +7,7 @@ import sys
 
 from django.db import models
 from django.db.models.base import ModelBase
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 
@@ -103,6 +104,7 @@ def _create_state_log_model(state_model, field_name, machine):
 
     get_state_choices = machine.get_state_choices
 
+    @python_2_unicode_compatible
     class _StateTransition(six.with_metaclass(_StateTransitionMeta, models.Model)):
         """
         The log entries for :class:`~django_states.machine.StateTransition`.
@@ -216,7 +218,7 @@ def _create_state_log_model(state_model, field_name, machine):
             """
             return six.text_type(self.state_transition_definition.description)
 
-        def __unicode__(self):
+        def __str__(self):
             return '<State transition on {0} at {1} from "{2}" to "{3}">'.format(
                 state_model.__name__, self.start_time, self.from_state, self.to_state)
 

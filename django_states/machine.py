@@ -11,6 +11,7 @@ import logging
 from django.contrib import messages
 from django_states.exceptions import (TransitionNotFound, TransitionValidationError,
                                 UnknownState, TransitionException, MachineDefinitionException)
+from django.utils.encoding import python_2_unicode_compatible
 
 
 logger = logging.getLogger(__name__)
@@ -190,6 +191,7 @@ class StateGroupMeta(type):
         return type.__new__(c, name, bases, attrs)
 
 
+@python_2_unicode_compatible
 class StateTransitionMeta(type):
     def __new__(c, name, bases, attrs):
         """
@@ -218,7 +220,7 @@ class StateTransitionMeta(type):
 
         return type.__new__(c, name, bases, attrs)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s: (from %s to %s)' % (six.text_type(self.description), ' or '.join(self.from_states), self.to_state)
 
 
