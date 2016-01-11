@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """Models"""
+from __future__ import absolute_import
+import six
 
 # Author: Jonathan Slenders, CityLive
 
@@ -52,14 +54,13 @@ class StateModelBase(ModelBase):
         return ModelBase.__new__(cls, name, bases, attrs)
 
 
-class StateModel(models.Model):
+class StateModel(six.with_metaclass(StateModelBase, models.Model)):
     """
     Every model which needs state can inherit this abstract model.
 
     This will dynamically add a :class:`~django_states.fields.StateField` named
     ``state``.
     """
-    __metaclass__ = StateModelBase
 
     class Machine(StateMachine):
         """
@@ -107,7 +108,7 @@ class StateModel(models.Model):
         """
         Gets the full description of the (current) state
         """
-        return unicode(self.get_state_info().description)
+        return six.text_type(self.get_state_info().description)
 
     @property
     def is_initial_state(self):

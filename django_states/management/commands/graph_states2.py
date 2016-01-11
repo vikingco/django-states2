@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import logging
 import os
 from optparse import make_option
@@ -6,6 +7,7 @@ from yapgvb import Graph
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import get_model
+import six
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +40,7 @@ class Command(BaseCommand):
             Model = None
         STATE_MACHINE = getattr(Model(), 'get_%s_machine' % field)()
 
-        name = unicode(Model._meta.verbose_name)
+        name = six.text_type(Model._meta.verbose_name)
         g = Graph('state_machine_graph_%s' % model_label, False)
         g.label = 'State Machine Graph %s' % name
         nodes = {}
@@ -56,7 +58,7 @@ class Command(BaseCommand):
                 if f(i): return i
             return None
 
-        for trion_name,trion in STATE_MACHINE.transitions.iteritems():
+        for trion_name,trion in six.iteritems(STATE_MACHINE.transitions):
             for from_state in trion.from_states:
                 edge = g.add_edge(nodes[from_state], nodes[trion.to_state])
                 edge.dir = 'forward'

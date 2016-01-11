@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 """log model"""
-
-"""
-Suport for Django 1.5 custom user model.
-"""
+from __future__ import absolute_import
 
 import json
 import sys
@@ -16,6 +13,7 @@ from django.conf import settings
 from django_states import conf
 from django_states.fields import StateField
 from django_states.machine import StateMachine, StateDefinition, StateTransition
+import six
 
 
 def _create_state_log_model(state_model, field_name, machine):
@@ -105,11 +103,10 @@ def _create_state_log_model(state_model, field_name, machine):
 
     get_state_choices = machine.get_state_choices
 
-    class _StateTransition(models.Model):
+    class _StateTransition(six.with_metaclass(_StateTransitionMeta, models.Model)):
         """
         The log entries for :class:`~django_states.machine.StateTransition`.
         """
-        __metaclass__ = _StateTransitionMeta
 
         state = StateField(max_length=100, default='0',
                            verbose_name=_('state id'),
@@ -174,7 +171,7 @@ def _create_state_log_model(state_model, field_name, machine):
             :class:`django_states.machine.StateDefinition` from which we were
             originated.
             """
-            return unicode(self.from_state_definition.description)
+            return six.text_type(self.from_state_definition.description)
 
         @property
         def to_state_definition(self):
@@ -191,7 +188,7 @@ def _create_state_log_model(state_model, field_name, machine):
             :class:`django_states.machine.StateDefinition` to which we were
             transitioning.
             """
-            return unicode(self.to_state_definition.description)
+            return six.text_type(self.to_state_definition.description)
 
         def make_transition(self, transition, user=None):
             """
@@ -217,7 +214,7 @@ def _create_state_log_model(state_model, field_name, machine):
             :class:`django_states.machine.StateTransition` declaration of the
             machine.
             """
-            return unicode(self.state_transition_definition.description)
+            return six.text_type(self.state_transition_definition.description)
 
         def __unicode__(self):
             return '<State transition on {0} at {1} from "{2}" to "{3}">'.format(

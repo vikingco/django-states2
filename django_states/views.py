@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Views"""
+from __future__ import absolute_import
 
 from django.db.models import get_model
 from django.http import (HttpResponseRedirect, HttpResponseForbidden,
@@ -47,7 +48,7 @@ def make_state_transition(request):
         try:
             # Make state transition
             instance.make_transition(action, request.user, **kwargs)
-        except PermissionDenied, e:
+        except PermissionDenied as e:
             return HttpResponseForbidden()
         else:
             # ... Redirect to 'next'
