@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """State Machine"""
+from __future__ import absolute_import
+import six
 
 __all__ = ('StateMachine', 'StateDefinition', 'StateTransition')
 
@@ -9,6 +11,7 @@ import logging
 from django.contrib import messages
 from django_states.exceptions import (TransitionNotFound, TransitionValidationError,
                                 UnknownState, TransitionException, MachineDefinitionException)
+from django.utils.encoding import python_2_unicode_compatible
 
 
 logger = logging.getLogger(__name__)
@@ -62,7 +65,7 @@ class StateMachineMeta(type):
         # Give all state transitions a 'to_state_description' attribute.
         # by copying the description from the state definition. (no
         # from_state_description, because multiple from-states are possible.)
-        for t in transitions.values():
+        for t in list(transitions.values()):
             t.to_state_description = states[t.to_state].description
 
         return type.__new__(c, name, bases, attrs)
@@ -122,7 +125,7 @@ class StateMachineMeta(type):
         :returns: a :class:`StateTransition` or raises
             a :class:`~django_states.exceptions.TransitionNotFound`
         """
-        for t in self.transitions.values():
+        for t in list(self.transitions.values()):
             if from_state in t.from_states and t.to_state == to_state:
                 return t
         raise TransitionNotFound(self, from_state, to_state)
@@ -158,7 +161,7 @@ class StateDefinitionMeta(type):
             if not 'description' in attrs and not attrs.get('abstract', False):
                 raise Exception('Please give a description to this state definition')
 
-        if 'handler' in attrs and len(attrs['handler'].func_code.co_varnames) < 2:
+        if 'handler' in attrs and len(attrs['handler'].__code__.co_varnames) < 2:
             raise Exception('StateDefinition handler needs at least two arguments')
 
         # Turn `handler` into classmethod
@@ -188,6 +191,7 @@ class StateGroupMeta(type):
         return type.__new__(c, name, bases, attrs)
 
 
+@python_2_unicode_compatible
 class StateTransitionMeta(type):
     def __new__(c, name, bases, attrs):
         """
@@ -206,7 +210,7 @@ class StateTransitionMeta(type):
             if not 'description' in attrs:
                 raise Exception('Please give a description to this state transition')
 
-        if 'handler' in attrs and len(attrs['handler'].func_code.co_varnames) < 3:
+        if 'handler' in attrs and len(attrs['handler'].__code__.co_varnames) < 3:
             raise Exception('StateTransition handler needs at least three arguments')
 
         # Turn `has_permission` and `handler` into classmethods
@@ -216,15 +220,14 @@ class StateTransitionMeta(type):
 
         return type.__new__(c, name, bases, attrs)
 
-    def __unicode__(self):
-        return '%s: (from %s to %s)' % (unicode(self.description), ' or '.join(self.from_states), self.to_state)
+    def __str__(self):
+        return '%s: (from %s to %s)' % (six.text_type(self.description), ' or '.join(self.from_states), self.to_state)
 
 
-class StateMachine(object):
+class StateMachine(six.with_metaclass(StateMachineMeta, object)):
     """
     Base class for a state machine definition
     """
-    __metaclass__ = StateMachineMeta
 
     #: Log transitions? Log by default.
     log_transitions = True
@@ -244,8 +247,8 @@ class StateMachine(object):
                     try:
                         get_STATE_info().test_transition(transition_name,
                                                        request.user)
-                    except TransitionException, e:
-                        modeladmin.message_user(request, 'ERROR: %s on: %s' % (e.message, unicode(o)),
+                    except TransitionException as e:
+                        modeladmin.message_user(request, 'ERROR: %s on: %s' % (e.message, six.text_type(o)),
                                                 level=messages.ERROR)
                         return
 
@@ -258,11 +261,11 @@ class StateMachine(object):
                 # Feeback
                 modeladmin.message_user(request, 'State changed for %s objects.' % len(queryset))
 
-            action.short_description = unicode(cls.transitions[transition_name])
+            action.short_description = six.text_type(cls.transitions[transition_name])
             action.__name__ = 'state_transition_%s' % transition_name
             return action
 
-        for t in cls.transitions.keys():
+        for t in list(cls.transitions.keys()):
             actions.append(create_action(t))
 
         return actions
@@ -272,14 +275,13 @@ class StateMachine(object):
         """
         Gets all possible choices for a model.
         """
-        return [(k, cls.states[k].description) for k in cls.states.keys()]
+        return [(k, cls.states[k].description) for k in list(cls.states.keys())]
 
 
-class StateDefinition(object):
+class StateDefinition(six.with_metaclass(StateDefinitionMeta, object)):
     """
     Base class for a state definition
     """
-    __metaclass__ = StateDefinitionMeta
 
     #: Is this the initial state?  Not initial by default. The machine should
     # define at least one state where ``initial=True``
@@ -300,11 +302,10 @@ class StateDefinition(object):
         return cls.__name__
 
 
-class StateGroup(object):
+class StateGroup(six.with_metaclass(StateGroupMeta, object)):
     """
     Base class for a state groups
     """
-    __metaclass__ = StateGroupMeta
 
     #: Description for this state group
     description = ''
@@ -317,11 +318,10 @@ class StateGroup(object):
         return cls.__name__
 
 
-class StateTransition(object):
+class StateTransition(six.with_metaclass(StateTransitionMeta, object)):
     """
     Base class for a state transitions
     """
-    __metaclass__ = StateTransitionMeta
 
     #: When a transition has been defined as public, is meant to be seen
     #: by the end-user.
@@ -366,4 +366,4 @@ class StateTransition(object):
 
     @property
     def handler_kwargs(self):
-        return self.handler.func_code.co_varnames[3:]
+        return self.handler.__code__.co_varnames[3:]
