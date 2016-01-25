@@ -117,14 +117,15 @@ def _create_state_log_model(state_model, field_name, machine):
         from_state = models.CharField(max_length=100,
                                       choices=get_state_choices())
         to_state = models.CharField(max_length=100, choices=get_state_choices())
-        user = models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), blank=True, null=True)
+        user = models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), on_delete=models.CASCADE,
+                                 blank=True, null=True)
         serialized_kwargs = models.TextField(blank=True)
 
         start_time = models.DateTimeField(
             auto_now_add=True, db_index=True,
             verbose_name=_('transition started at')
         )
-        on = models.ForeignKey(state_model, related_name=('%s_history' % field_name))
+        on = models.ForeignKey(state_model, on_delete=models.CASCADE, related_name=('%s_history' % field_name))
 
         class Meta:
             """Non-field Options"""
