@@ -1,5 +1,5 @@
 ``django_states.fields``
-==================
+========================
 
 .. automodule:: django_states.fields
    :members:

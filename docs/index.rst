@@ -12,15 +12,15 @@ Internal API
 .. toctree::
    :maxdepth: 2
 
-   states2/conf
-   states2/exceptions
-   states2/fields
-   states2/log
-   states2/machine
-   states2/model_methods
-   states2/models
-   states2/templatetags
-   states2/views
+   django_states/conf
+   django_states/exceptions
+   django_states/fields
+   django_states/log
+   django_states/machine
+   django_states/model_methods
+   django_states/models
+   django_states/templatetags
+   django_states/views
 
 
 Indices and tables

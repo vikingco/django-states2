@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Model Methods"""
+from __future__ import absolute_import
 
 import json
 
@@ -32,7 +33,7 @@ def get_public_STATE_transitions(self, field='state'):
     """
     if getattr(self, '_%s_log_model' % field, None):
         transitions = getattr(self, 'get_%s_transitions' % field)
-        return filter(lambda t: t.is_public and t.completed, transitions())
+        return [t for t in transitions() if t.is_public and t.completed]
     else:
         return []
 
@@ -182,7 +183,7 @@ def get_STATE_info(self, field='state', machine=None):
             # Test transition (access/execution validation)
             try:
                 si_self.test_transition(transition, user)
-            except TransitionException, e:
+            except TransitionException as e:
                 if _state_log_model:
                     transition_log.make_transition('fail')
                 raise e
@@ -207,7 +208,7 @@ def get_STATE_info(self, field='state', machine=None):
                 after_state_execute.send(sender=self,
                                          from_state=from_state,
                                          to_state=t.to_state)
-            except Exception, e:
+            except Exception as e:
                 if _state_log_model:
                     transition_log.make_transition('fail')
 
