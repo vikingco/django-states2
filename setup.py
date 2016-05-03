@@ -5,14 +5,12 @@ import sys
 
 from setuptools import setup, find_packages
 
-import django_states
-
 sys.path.insert(0, os.path.dirname(__file__))
 
 
 setup(
     name="django-states2",
-    version=django_states.__version__,
+    version='1.6.4',
     url='https://github.com/vikingco/django-states2',
     license='BSD',
     description="State machine for django models",
