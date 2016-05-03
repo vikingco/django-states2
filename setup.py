@@ -11,9 +11,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 
 setup(
-    name="django-states",
+    name="django-states2",
     version=django_states.__version__,
-    url='https://github.com/citylive/django-states2',
+    url='https://github.com/vikingco/django-states2',
     license='BSD',
     description="State machine for django models",
     long_description=open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
