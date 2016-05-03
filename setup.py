@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 setup(
     name="django-states2",
-    version='1.6.4',
+    version='1.6.6',
     url='https://github.com/vikingco/django-states2',
     license='BSD',
     description="State machine for django models",
