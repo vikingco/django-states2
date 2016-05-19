@@ -68,9 +68,11 @@ To use a state machine, you should add a state field to the model
 If ``log_transitions`` is enabled, another model is created. Everything
 should be compatible with South\_ for migrations.
 
-Note: If you're creating a ``DataMigration`` in
-`South <http://south.aeracode.org/>`__, remember to use
-``obj.save(no_state_validation=True)``
+.. note::
+
+   If you're creating a ``DataMigration`` in
+   `South <http://south.aeracode.org/>`__, remember to use
+   ``obj.save(no_state_validation=True)``
 
 Usage example:
 
