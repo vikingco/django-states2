@@ -17,7 +17,7 @@ def make_state_transition(request):
 
     Required parameters:
 
-    - ``model_name``: the name of the state model, as retured by
+    - ``model_name``: the name of the state model, as returned by
       ``instance.get_state_model_name``.
     - ``action``: the name of the state transition, as given by
       ``StateTransition.get_name``.
