@@ -350,7 +350,7 @@ class StateTransition(six.with_metaclass(StateTransitionMeta, object)):
         # yield TransitionValidationError("This object needs ....")
         # yield TransitionValidationError("Another error ....")
 
-    def handler(cls, instance, user):
+    def handler(cls, instance, user, **kwargs):
         """
         Override this method if some specific actions need
         to be executed during this state transition.
