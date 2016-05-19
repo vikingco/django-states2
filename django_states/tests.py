@@ -72,6 +72,34 @@ class TestMachine(StateMachine):
         states = ['step_2_fail']
 
 
+class TestHandlerMachine(StateMachine):
+    """A state machine to test handlers"""
+    log_transitions = False
+
+    # States
+    class pending(StateDefinition):
+        description = "Pending review"
+        initial = True
+
+        def handler(cls, instance):
+            instance.pending_handler_called = True
+
+    class approved(StateDefinition):
+        description = "Approved"
+
+        def handler(cls, instance):
+            instance.approved_handler_called = True
+
+    # Transitions
+    class approve(StateTransition):
+        from_state = 'pending'
+        to_state = 'approved'
+        description = "Approve entry"
+
+        def handler(cls, instance, user):
+            instance.approve_handler_called = True
+
+
 class TestLogMachine(StateMachine):
     """Same as above but this one logs"""
     log_transitions = True
@@ -121,6 +149,14 @@ class DjangoState2Class(models.Model):
     field2 = models.CharField(max_length=25)
 
     state = StateField(machine=TestMachine)
+
+
+class DjangoStateHandlerClass(models.Model):
+    pending_handler_called = models.BooleanField(default=False)
+    approved_handler_called = models.BooleanField(default=False)
+    approve_handler_called = models.BooleanField(default=False)
+
+    state = StateField(machine=TestHandlerMachine)
 
 
 class DjangoStateLogClass(models.Model):
@@ -515,6 +551,33 @@ class StateModelTestCase(TransactionTestCase):
         self.assertTrue(test.is_initial_state)
         test.make_transition('start_step_1', user=self.superuser)
         self.assertFalse(test.is_initial_state)
+
+    def test_initial_handler(self):
+        # Don't run initial state handler when using no_state_validation
+        test = DjangoStateHandlerClass()
+        test.save()
+        self.assertFalse(test.pending_handler_called)
+
+        test = DjangoStateHandlerClass()
+        test.save(no_state_validation=True)
+        self.assertFalse(test.pending_handler_called)
+
+        test = DjangoStateHandlerClass()
+        # Don't run initial state handler when using no_state_validation
+        self.assertFalse(test.pending_handler_called)
+        # Initial state handler should have been called
+        test.save(no_state_validation=False)
+        self.assertTrue(test.pending_handler_called)
+
+    def test_transition_handlers(self):
+        test = DjangoStateHandlerClass()
+        self.assertFalse(test.approve_handler_called)
+        self.assertFalse(test.approved_handler_called)
+        test.get_state_info().make_transition('approve')
+        # Both the transition handler as the handler of the arriving state should have been called
+        self.assertTrue(test.approve_handler_called)
+        self.assertTrue(test.approved_handler_called)
+
 
 
 class StateLogTestCase(TransactionTestCase):
