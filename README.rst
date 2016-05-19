@@ -95,7 +95,9 @@ Usage example:
 For better transition control, override:
 
 -  ``has_permission(self, instance, user)``: Check whether this user is
-   allowed to make this transition.
+   allowed to make this transition. See: `Validation`_
+-  ``validate(self, instance)``: Check whether this transition is
+   allowed. See: `Validation`_
 -  ``handler(self, instance, user, **kwargs)``: Code to run during this
    transition. When an exception has been raised in here, the transition
    will not be made. See: `Handlers`_
