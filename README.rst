@@ -87,7 +87,7 @@ Usage example:
    p.get_purchase_state_info().description # Will return 'Purchase paid'
 
    # Returns an iterator of possible transitions for this purchase.
-   p.get_purchase_state_info().possible_transitions()
+   p.get_purchase_state_info().possible_transitions
 
    # Which can be used like this..
    [x.get_name() for x in p.possible_transitions]
