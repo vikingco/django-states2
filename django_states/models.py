@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Models"""
 from __future__ import absolute_import
-import six
-
 # Author: Jonathan Slenders, CityLive
 
 __doc__ = \
@@ -23,6 +21,11 @@ from django.utils.translation import ugettext_lazy as _
 from django_states.machine import StateMachine, StateDefinition, StateTransition
 from django_states.exceptions import States2Exception
 from django_states.fields import StateField
+
+try:
+    import six
+except ImportError:
+    from django.utils import six
 
 
 # =======================[ State ]=====================

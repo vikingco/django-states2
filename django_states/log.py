@@ -14,7 +14,11 @@ from django.conf import settings
 from django_states import conf
 from django_states.fields import StateField
 from django_states.machine import StateMachine, StateDefinition, StateTransition
-import six
+
+try:
+    import six
+except ImportError:
+    from django.utils import six
 
 
 def _create_state_log_model(state_model, field_name, machine):
