@@ -38,9 +38,9 @@ def make_state_transition(request):
 
         # Build optional kwargs
         kwargs = {}
-        for p in request.REQUEST:
+        for p in request.POST:
             if p.startswith('kwarg-'):
-                kwargs[p[len('kwargs-')-1:]] = request.REQUEST[p]
+                kwargs[p[len('kwargs-')-1:]] = request.POST[p]
 
         if not hasattr(instance, 'make_transition'):
             raise Exception('No such state model "%s"' % model_name)
@@ -52,8 +52,8 @@ def make_state_transition(request):
             return HttpResponseForbidden()
         else:
             # ... Redirect to 'next'
-            if 'next' in request.REQUEST:
-                return HttpResponseRedirect(request.REQUEST['next'])
+            if 'next' in request.POST:
+                return HttpResponseRedirect(request.POST['next'])
             else:
                 return HttpResponse('OK')
     else:
