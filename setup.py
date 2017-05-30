@@ -10,13 +10,13 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 setup(
     name="django-states2",
-    version='1.6.8',
+    version='1.6.10',
     url='https://github.com/vikingco/django-states2',
     license='BSD',
     description="State machine for django models",
     long_description=open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
-    author='Jonathan Slenders, Gert van Gool, Maarten Timmerman, Steven (rh0dium)',
-    author_email='jonathan.slenders@mobilevikings.com',
+    author='Jonathan Slenders, Gert van Gool, Maarten Timmerman, Steven (rh0dium), Unleashed NV',
+    author_email='operations@unleashed.be',
     packages=find_packages('.', exclude=['test_proj',]),
     #package_dir={'': 'templates/*'},
     test_suite='test_proj.runtests.main',
