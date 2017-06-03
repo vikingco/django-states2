@@ -19,6 +19,7 @@ Internal API
    django_states/machine
    django_states/model_methods
    django_states/models
+   django_states/signals
    django_states/templatetags
    django_states/views
 

@@ -195,9 +195,12 @@ def get_STATE_info(self, field='state', machine=None):
             try:
                 from_state = getattr(self, field)
 
-                before_state_execute.send(sender=self,
+                before_state_execute.send(sender=self.__class__,
+                                          instance=self,
                                           from_state=from_state,
-                                          to_state=t.to_state)
+                                          to_state=t.to_state,
+                                          transition=transition,
+                                          user=user)
                 # First call handler (handler should still see the original
                 # state.)
                 t.handler(self, user, **kwargs)
@@ -205,9 +208,12 @@ def get_STATE_info(self, field='state', machine=None):
                 # Then set new state and save.
                 setattr(self, field, t.to_state)
                 self.save()
-                after_state_execute.send(sender=self,
+                after_state_execute.send(sender=self.__class__,
+                                         instance=self,
                                          from_state=from_state,
-                                         to_state=t.to_state)
+                                         to_state=t.to_state,
+                                         transition=transition,
+                                         user=user)
             except Exception as e:
                 if _state_log_model:
                     transition_log.make_transition('fail')

@@ -3,6 +3,7 @@
 from __future__ import absolute_import
 from django.contrib.auth.models import User
 from django.db import models
+from django.dispatch import receiver
 from django.test import TransactionTestCase
 
 from django_states.exceptions import (PermissionDenied, TransitionNotFound,
@@ -11,6 +12,7 @@ from django_states.fields import StateField
 from django_states.machine import (StateDefinition, StateGroup, StateMachine,
                                    StateTransition)
 from django_states.models import StateModel
+from django_states.signals import before_state_execute, after_state_execute
 
 
 class TestMachine(StateMachine):
@@ -120,6 +122,11 @@ class DjangoState2Class(models.Model):
     field1 = models.IntegerField()
     field2 = models.CharField(max_length=25)
 
+    state = StateField(machine=TestMachine)
+
+
+class DjangoState3Class(models.Model):
+    """Django Test Model implementing a State Machine used since django-states2"""
     state = StateField(machine=TestMachine)
 
 
@@ -542,3 +549,47 @@ class StateLogTestCase(TransactionTestCase):
         # We should also be able to find this via
         self.assertEqual(test.get_state_transitions().count(), 1)
         self.assertEqual(len(test.get_public_state_transitions()), 1)
+
+
+class EventsTestCase(TransactionTestCase):
+    def test_signals(self):
+        @receiver(before_state_execute, sender=DjangoState3Class)
+        def before_handler(sender, **kwargs):
+            self.assertTrue('from_state' in kwargs)
+            self.assertTrue('to_state' in kwargs)
+            self.assertTrue('transition' in kwargs)
+            self.assertTrue('user' in kwargs)
+            self.assertEquals(kwargs['user'], None)
+            self.assertEquals(kwargs['from_state'], 'start')
+            self.assertEquals(kwargs['to_state'], 'step_1')
+            self.assertEquals(kwargs['transition'], 'start_step_1')
+            self.ran_before = True
+
+        @receiver(after_state_execute, sender=DjangoState3Class)
+        def after_handler(sender, **kwargs):
+            self.assertTrue('from_state' in kwargs)
+            self.assertTrue('to_state' in kwargs)
+            self.assertTrue('transition' in kwargs)
+            self.assertTrue('user' in kwargs)
+            self.assertEquals(kwargs['user'], None)
+            self.assertEquals(kwargs['from_state'], 'start')
+            self.assertEquals(kwargs['to_state'], 'step_1')
+            self.assertEquals(kwargs['transition'], 'start_step_1')
+            self.ran_after = True
+
+        self.ran_before = False
+        self.ran_after = False
+
+        testclass = DjangoState3Class.objects.create()
+        self.assertEqual(testclass.get_state_machine(), TestMachine)
+        self.assertEqual(testclass.get_state_display(), 'Starting State.')
+
+        state_info = testclass.get_state_info()
+        self.assertEqual(testclass.state, 'start')
+        self.assertTrue(state_info.initial)
+
+        state_info.make_transition('start_step_1')
+        self.assertFalse(state_info.initial)
+
+        self.assertTrue(self.ran_before)
+        self.assertTrue(self.ran_after)
