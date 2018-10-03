@@ -2,7 +2,7 @@
 """Views"""
 from __future__ import absolute_import
 
-from django.db.models import get_model
+from django.apps import apps
 from django.http import (HttpResponseRedirect, HttpResponseForbidden,
                          HttpResponse,)
 from django.shortcuts import get_object_or_404
@@ -30,7 +30,7 @@ def make_state_transition(request):
         # Process post parameters
         app_label, model_name = request.POST['model_name'].split('.')
         try:
-            model = get_model(app_label, model_name)
+            model = apps.get_model(app_label, model_name)
         except LookupError:
             model = None
         instance = get_object_or_404(model, id=request.POST['id'])
