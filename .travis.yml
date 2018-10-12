@@ -1,10 +1,24 @@
+sudo: false
 language: python
-python: 2.7
+python:
+  - "2.7"
+  - "3.4"
+  - "3.5"
 env:
-  - TOX_ENV=py27-dj16
-  - TOX_ENV=py27-dj17
-  - TOX_ENV=py27-dj18
+  - DJANGO_VERSION=1.6.11
+  - DJANGO_VERSION=1.7.10
+  - DJANGO_VERSION=1.8.13
+  - DJANGO_VERSION=1.9.6
+  - DJANGO_VERSION=1.10a1
+matrix:
+  allow_failures:
+    - env: DJANGO_VERSION=1.10a1
+  exclude:
+    - python: "3.5"
+      env: DJANGO_VERSION=1.6.11
+    - python: "3.5"
+      env: DJANGO_VERSION=1.7.10
 install:
-  - pip install tox
+  - pip install django==$DJANGO_VERSION
 script:
-  - tox -e $TOX_ENV
+  - python setup.py test

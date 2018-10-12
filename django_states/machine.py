@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """State Machine"""
 from __future__ import absolute_import
-import six
 
 __all__ = ('StateMachine', 'StateDefinition', 'StateTransition')
 
@@ -12,6 +11,11 @@ from django.contrib import messages
 from django_states.exceptions import (TransitionNotFound, TransitionValidationError,
                                 UnknownState, TransitionException, MachineDefinitionException)
 from django.utils.encoding import python_2_unicode_compatible
+
+try:
+    import six
+except ImportError:
+    from django.utils import six
 
 
 logger = logging.getLogger(__name__)

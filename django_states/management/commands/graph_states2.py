@@ -7,7 +7,11 @@ from yapgvb import Graph
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import get_model
-import six
+
+try:
+    import six
+except ImportError:
+    from django.utils import six
 
 logger = logging.getLogger(__name__)
 
