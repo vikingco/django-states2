@@ -381,7 +381,10 @@ class StateFieldTestCase(TransactionTestCase):
 
         self.assertEqual(testclass.state, 'start')
         self.assertTrue(state_info.initial)
-        state_info.make_transition('start_step_1', user=self.superuser)
+        state_info.test_transition('start_step_1', user=self.superuser)
+        with self.assertRaises(PermissionDenied):
+            state_info.test_transition('start_step_1', user=User(username='user1'))
+        state_info.test_transition('start_step_1', user=self.superuser).make_transition('start_step_1', user=self.superuser)
         self.assertFalse(state_info.initial)
 
     def test_end_to_end(self):
