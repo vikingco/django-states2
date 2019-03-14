@@ -24,14 +24,14 @@ class StateField(models.CharField):
 
         status = StateField(machine=PowerState)
     """
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         # State machine parameter. (Fall back to default machine.
         # e.g. when South is creating an instance.)
         self._machine = kwargs.pop('machine', StateMachine)
 
         kwargs.setdefault('max_length', 100)
         kwargs['choices'] = None
-        super(StateField, self).__init__(**kwargs)
+        super(StateField, self).__init__(*args, **kwargs)
 
     def contribute_to_class(self, cls, name):
         """

@@ -120,7 +120,7 @@ class DjangoState2Class(models.Model):
     field1 = models.IntegerField()
     field2 = models.CharField(max_length=25)
 
-    state = StateField(machine=TestMachine)
+    state = StateField('statefield', machine=TestMachine)
 
 
 class DjangoStateLogClass(models.Model):
