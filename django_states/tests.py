@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tests"""
 from __future__ import absolute_import
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AnonymousUser, User
 from django.db import models
 from django.test import TransactionTestCase
 
@@ -97,6 +97,9 @@ class TestLogMachine(StateMachine):
         to_state = 'first_step'
         description = "Transition from start to normal"
         public = True
+
+        def has_permission(cls, instance, user):
+            return True
 
     class step_1_final_step(StateTransition):
         """Transition from normal to complete"""
@@ -430,10 +433,12 @@ class StateFieldTestCase(TransactionTestCase):
         testclass = DjangoState2Class(field1=100, field2="LALALALALA")
         testclass.save()
 
-        kwargs = {'transition': 'start_step_1', 'user': user}
-
         state_info = testclass.get_state_info()
 
+        kwargs = {'transition': 'start_step_1', 'user': user}
+        self.assertRaises(PermissionDenied, state_info.make_transition, **kwargs)
+
+        kwargs = {'transition': 'start_step_1', 'user': AnonymousUser()}
         self.assertRaises(PermissionDenied, state_info.make_transition, **kwargs)
 
     def test_in_group(self):
@@ -533,6 +538,26 @@ class StateLogTestCase(TransactionTestCase):
         self.assertEqual(state_info.name, test.state)
         # Make transition
         state_info.make_transition('start_step_1', user=self.superuser)
+
+        # Test whether log entry was created
+        StateLogModel = DjangoStateLogClass._state_log_model
+        self.assertEqual(StateLogModel.objects.count(), 1)
+        entry = StateLogModel.objects.all()[0]
+        self.assertTrue(entry.completed)
+        # We should also be able to find this via
+        self.assertEqual(test.get_state_transitions().count(), 1)
+        self.assertEqual(len(test.get_public_state_transitions()), 1)
+
+    def test_statelog_anonymous(self):
+        test = DjangoStateLogClass(field1=42, field2="Hello world?")
+        test.save(no_state_validation=False)
+
+        # Verify the starting state.
+        state_info = test.get_state_info()
+        self.assertEqual(test.state, 'start')
+        self.assertEqual(state_info.name, test.state)
+        # Make transition
+        state_info.make_transition('start_step_1', user=AnonymousUser())
 
         # Test whether log entry was created
         StateLogModel = DjangoStateLogClass._state_log_model
