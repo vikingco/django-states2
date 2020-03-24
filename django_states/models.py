@@ -163,7 +163,7 @@ class StateModel(six.with_metaclass(StateModelBase, models.Model)):
         :type: :class:`django.contrib.auth.models.User` or ``None``
 
         :returns:``True`` when we expect this transition to be executed
-            succesfully. It will raise an ``Exception`` when this
+            successfully. It will raise an ``Exception`` when this
             transition is impossible or not allowed.
         """
         return self.get_state_info().test_transition(transition, user=user)
