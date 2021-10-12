@@ -3,18 +3,18 @@
 from __future__ import absolute_import
 
 import json
+import six
 import sys
 
 from django.db import models
 from django.db.models.base import ModelBase
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 
 from django_states import conf
 from django_states.fields import StateField
 from django_states.machine import StateMachine, StateDefinition, StateTransition
-import six
+from six import python_2_unicode_compatible
 
 
 def _create_state_log_model(state_model, field_name, machine):
