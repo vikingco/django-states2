@@ -11,7 +11,7 @@ import logging
 from django.contrib import messages
 from django_states.exceptions import (TransitionNotFound, TransitionValidationError,
                                 UnknownState, TransitionException, MachineDefinitionException)
-from django.utils.encoding import python_2_unicode_compatible
+from six import python_2_unicode_compatible
 
 
 logger = logging.getLogger(__name__)
