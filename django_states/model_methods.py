@@ -33,7 +33,7 @@ def get_public_STATE_transitions(self, field='state'):
     """
     if getattr(self, '_%s_log_model' % field, None):
         transitions = getattr(self, 'get_%s_transitions' % field)
-        return [t for t in transitions() if t.is_public and t.completed]
+        return [t for t in transitions(self) if t.is_public and t.completed]
     else:
         return []
 

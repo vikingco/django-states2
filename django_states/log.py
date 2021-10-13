@@ -85,7 +85,7 @@ def _create_state_log_model(state_model, field_name, machine):
 
                 def new_unicode(self):
                     """New Unicode"""
-                    return u'%s (%s)' % (old_unicode(self), self.get_state_info().description)
+                    return u'%s (%s)' % (old_unicode(self), self.get_state_info(self).description)
 
             attrs['__unicode__'] = new_unicode
 
@@ -200,7 +200,7 @@ def _create_state_log_model(state_model, field_name, machine):
             :param transition: Name of the transition
             :param user: User object
             """
-            return self.get_state_info().make_transition(transition, user=user)
+            return self.get_state_info(self).make_transition(transition, user=user)
 
         @property
         def is_public(self):

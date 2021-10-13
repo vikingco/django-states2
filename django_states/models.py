@@ -96,21 +96,21 @@ class StateModel(six.with_metaclass(StateModelBase, models.Model)):
         """
         Wraps :meth:`django_states.model_methods.get_STATE_transitions`
         """
-        return self.get_state_transitions()
+        return self.get_state_transitions(self)
 
     @property
     def public_transitions(self):
         """
         Wraps :meth:`django_states.model_methods.get_public_STATE_transitions`
         """
-        return self.get_public_state_transitions()
+        return self.get_public_state_transitions(self)
 
     @property
     def state_description(self):
         """
         Gets the full description of the (current) state
         """
-        return six.text_type(self.get_state_info().description)
+        return six.text_type(self.get_state_info(self).description)
 
     @property
     def is_initial_state(self):
@@ -119,7 +119,7 @@ class StateModel(six.with_metaclass(StateModelBase, models.Model)):
 
         :returns: ``True`` when the current state is the initial state
         """
-        return bool(self.get_state_info().initial)
+        return bool(self.get_state_info(self).initial)
 
     @property
     def possible_transitions(self):
@@ -128,7 +128,7 @@ class StateModel(six.with_metaclass(StateModelBase, models.Model)):
 
         :returns: list of transitions which can be made from the current state
         """
-        return self.get_state_info().possible_transitions
+        return self.get_state_info(self).possible_transitions
 
     @classmethod
     def get_state_model_name(self):
@@ -166,7 +166,7 @@ class StateModel(six.with_metaclass(StateModelBase, models.Model)):
             succesfully. It will raise an ``Exception`` when this
             transition is impossible or not allowed.
         """
-        return self.get_state_info().test_transition(transition, user=user)
+        return self.get_state_info(self).test_transition(transition, user=user)
 
     def make_transition(self, transition, user=None, **kwargs):
         """
@@ -179,7 +179,7 @@ class StateModel(six.with_metaclass(StateModelBase, models.Model)):
         :param dict kwargs: the kwargs that will be passed to
             :meth:`~django_states.machine.StateTransition.handler`
         """
-        return self.get_state_info().make_transition(transition, user=user, **kwargs)
+        return self.get_state_info(self).make_transition(transition, user=user, **kwargs)
 
     @classmethod
     def get_state_choices(cls):
