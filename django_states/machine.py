@@ -248,7 +248,7 @@ class StateMachine(six.with_metaclass(StateMachineMeta, object)):
                         get_STATE_info().test_transition(transition_name,
                                                        request.user)
                     except TransitionException as e:
-                        modeladmin.message_user(request, 'ERROR: %s on: %s' % (e.message, six.text_type(o)),
+                        modeladmin.message_user(request, 'ERROR: %s on: %s' % (str(e), six.text_type(o)),
                                                 level=messages.ERROR)
                         return
 
