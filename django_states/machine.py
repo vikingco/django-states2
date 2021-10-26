@@ -245,7 +245,7 @@ class StateMachine(six.with_metaclass(StateMachineMeta, object)):
                 for o in queryset:
                     get_STATE_info = getattr(o, 'get_%s_info' % field_name)
                     try:
-                        get_STATE_info().test_transition(transition_name,
+                        get_STATE_info(o).test_transition(transition_name,
                                                        request.user)
                     except TransitionException as e:
                         modeladmin.message_user(request, 'ERROR: %s on: %s' % (str(e), six.text_type(o)),
@@ -255,7 +255,7 @@ class StateMachine(six.with_metaclass(StateMachineMeta, object)):
                 # Make actual transitions
                 for o in queryset:
                     get_STATE_info = getattr(o, 'get_%s_info' % field_name)
-                    get_STATE_info().make_transition(transition_name,
+                    get_STATE_info(o).make_transition(transition_name,
                                                    request.user)
 
                 # Feeback
