@@ -374,10 +374,10 @@ class StateFieldTestCase(TransactionTestCase):
         testclass = DjangoState2Class(field1=100, field2="LALALALALA")
         testclass.save()
 
-        self.assertEqual(testclass.get_state_machine(), TestMachine)
-        self.assertEqual(testclass.get_state_display(), 'Starting State.')
+        self.assertEqual(testclass.get_state_machine(testclass), TestMachine)
+        self.assertEqual(testclass.get_state_display(testclass), 'Starting State.')
 
-        state_info = testclass.get_state_info()
+        state_info = testclass.get_state_info(testclass)
 
         self.assertEqual(testclass.state, 'start')
         self.assertTrue(state_info.initial)
@@ -389,7 +389,7 @@ class StateFieldTestCase(TransactionTestCase):
         testclass = DjangoState2Class(field1=100, field2="LALALALALA")
         testclass.save()
 
-        state_info = testclass.get_state_info()
+        state_info = testclass.get_state_info(testclass)
 
         # Verify the starting state.
         self.assertEqual(testclass.state, 'start')
@@ -432,7 +432,7 @@ class StateFieldTestCase(TransactionTestCase):
 
         kwargs = {'transition': 'start_step_1', 'user': user}
 
-        state_info = testclass.get_state_info()
+        state_info = testclass.get_state_info(testclass)
 
         self.assertRaises(PermissionDenied, state_info.make_transition, **kwargs)
 
@@ -441,7 +441,7 @@ class StateFieldTestCase(TransactionTestCase):
         testclass = DjangoState2Class(field1=100, field2="LALALALALA")
         testclass.save()
 
-        state_info = testclass.get_state_info()
+        state_info = testclass.get_state_info(testclass)
 
         self.assertTrue(state_info.in_group['states_valid_start'])
         state_info.make_transition('start_step_1', user=self.superuser)
@@ -458,7 +458,7 @@ class StateFieldTestCase(TransactionTestCase):
         test = DjangoState2Class(field1=100, field2="LALALALALA")
         test.save()
 
-        state_info = test.get_state_info()
+        state_info = test.get_state_info(test)
         with self.assertRaises(UnknownTransition):
             state_info.make_transition('unknown_transition', user=self.superuser)
 
@@ -528,7 +528,7 @@ class StateLogTestCase(TransactionTestCase):
         test.save(no_state_validation=False)
 
         # Verify the starting state.
-        state_info = test.get_state_info()
+        state_info = test.get_state_info(test)
         self.assertEqual(test.state, 'start')
         self.assertEqual(state_info.name, test.state)
         # Make transition
@@ -540,5 +540,5 @@ class StateLogTestCase(TransactionTestCase):
         entry = StateLogModel.objects.all()[0]
         self.assertTrue(entry.completed)
         # We should also be able to find this via
-        self.assertEqual(test.get_state_transitions().count(), 1)
-        self.assertEqual(len(test.get_public_state_transitions()), 1)
+        self.assertEqual(test.get_state_transitions(test).count(), 1)
+        self.assertEqual(len(test.get_public_state_transitions(test)), 1)
